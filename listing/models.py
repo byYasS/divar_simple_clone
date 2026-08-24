@@ -1,6 +1,6 @@
 from django.db import models
 from account.models import User
-from location.models import Province, City
+from location.models import City
 
 # Create your models here.
 class Category(models.Model):

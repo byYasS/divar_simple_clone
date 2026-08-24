@@ -15,6 +15,7 @@
         {{ listing.title }}
         <br><br>
         {{ listing.description }}
+        <br><br>
 
         {% if is_seller %}
             <button>
@@ -33,6 +34,9 @@
                 {% else %}
                     <i class="fa-regular fa-bookmark"></i>
                 {% endif %}
+            </button>
+            <button type="button">
+                <a href="{% url 'chat:start_chat' listing.seller.username listing.id %}">گفتگو با فروشنده</a>
             </button>
         {% endif %}
 

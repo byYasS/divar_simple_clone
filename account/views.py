@@ -4,8 +4,10 @@ from django.http import JsonResponse, HttpResponse
 from .models import User, Profile
 from .forms import EditProfileForm
 from listing.models import Listing, Bookmark
+from account.decorators import register_required
 from . import otp
 import re
+
 
 # Create your views here.
 def register_or_login(request, phone):
@@ -15,6 +17,7 @@ def register_or_login(request, phone):
     else:
         user = User.objects.create_user(phone_number=phone)
         user.save()
+        login(request, user)
     
 
     
@@ -86,7 +89,7 @@ def verify_otp(request):
     return render(request, "verify_otp.html",{"message": message, "ttl": ttl})
 
     
-    
+   
 def logout_user(request):
     logout(request)
     
@@ -94,6 +97,7 @@ def logout_user(request):
     
     
     
+@register_required    
 def user_profile(request):
     profile = Profile.objects.get(user=request.user)
     
@@ -101,6 +105,7 @@ def user_profile(request):
 
 
 
+@register_required
 def edit_profile(request):
     profile = request.user.profile
     
@@ -127,9 +132,10 @@ def edit_profile(request):
         form = EditProfileForm(initial=data)
             
     return render(request, "edit_profile.html", {"form":form})
+        
             
 
-
+@register_required
 def user_listings(request):
     listings = Listing.objects.filter(seller=request.user)
     
@@ -137,6 +143,7 @@ def user_listings(request):
 
 
 
+@register_required
 def user_boomarks(request):
     bookmarks = Bookmark.objects.filter(user=request.user).select_related("listing")
     

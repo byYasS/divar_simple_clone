@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from location.models import Province, City
+from location.models import City
+import uuid
+
+
 # Create your models here.
 class UserManager(BaseUserManager):
 
@@ -30,13 +33,16 @@ class UserManager(BaseUserManager):
             password,
             **extra_fields
         )
-        
+  
+def generate_username():
+    return f"کاربر_{uuid.uuid4().hex[:6]}" 
+     
 class User(AbstractUser):
     phone_number = models.CharField(max_length=11, unique=True)
-    username = models.CharField(max_length=50, default="کاربر دیوار", blank=True, null=True)
+    username = models.CharField(max_length=50, default=generate_username, unique=True)
     verified = models.BooleanField(default=False)
     
-    USERNAME_FIELD = "phone_number"
+    USERNAME_FIELD = "username"
     
     
     

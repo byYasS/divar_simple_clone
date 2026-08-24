@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <h4 id="username"></h4>
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+    <input id="chat-message-input" type="text" size="100"><br>
+    <input id="chat-message-submit" type="button" value="Send">
+    {{ conversation_id|json_script:"conversation_id" }}
+    
+    <script>
+        const conversation_id = JSON.parse(document.getElementById('conversation_id').textContent);
+
+        const seller_id = "{{ conversation.seller.id }}";
+        const seller_name = "{{ conversation.seller.username }}";
+        const customer_name = "{{ conversation.customer.username }}";
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + conversation_id
+            + '/'
+        );
+
+        chatSocket.onopen = function() {
+            
+            chatSocket.send(JSON.stringify({
+                'request': "get_old_messages",
+                'conversation_id': conversation_id,
+            }));
+        }
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const name = document.querySelector('#username');
+            
+
+            if(seller_id == data.user_id){
+                name.textContent = customer_name
+            }else{
+                name.textContent = seller_name
+            };
+
+
+            const event = data.event;
+
+            if(event["response"]==="send_new_message"){
+
+                document.querySelector('#chat-log').value += (
+                    event["message_data"]["sender_name"]
+                    + ' '
+                    + event["message_data"]["message"] 
+                    + '  ' 
+                    + event["message_data"]["sended_at"]
+                    + '\n');
+
+            }else{
+                for(let i=event.length-1 ; i>=0 ; i--){
+
+                    document.querySelector('#chat-log').value += (
+                        event[i]["sender_name"]
+                        + ' '
+                        + event[i]["message"] 
+                        + '  ' 
+                        + event[i]["sended_at"] 
+                        + '\n');
+
+                } 
+            }
+            
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.key === 'Enter') {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'request': "send_new_message",
+                'message': message,
+                'conversation_id': conversation_id,
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+
+{% endblock content %}

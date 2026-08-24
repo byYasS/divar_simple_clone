@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from .models import Listing, ListingImage, Bookmark
+from account.decorators import register_required
 from django.db import transaction
 from .forms import ListingForm
 import json
+
 
 # Create your views here.
 def validate_images(images):
@@ -30,6 +31,7 @@ def listing_page(request):
 
 
 
+@register_required
 def listing_detail(request, id):
     listing = Listing.objects.get(id=id)
     images = ListingImage.objects.filter(listing=listing)
@@ -48,9 +50,10 @@ def listing_detail(request, id):
 
 
 
-@login_required
+@register_required
 @transaction.atomic
 def create_listing(request):
+    
     if request.user.profile.city is None:
         return redirect("/account/user/profile/edit/")
     else:
@@ -97,9 +100,10 @@ def create_listing(request):
     
  
  
-@login_required     
+@register_required 
 @transaction.atomic    
 def update_listing(request, id):
+    
     listing = get_object_or_404(Listing, id=id, seller=request.user)
     images = ListingImage.objects.filter(listing=listing)
     updating_image_errors = []
@@ -157,7 +161,7 @@ def update_listing(request, id):
      
   
   
-@login_required     
+@register_required    
 def delete_listing(request, id):
     if request.method == "POST":
         listing = get_object_or_404(Listing, id=id, seller=request.user)
@@ -174,7 +178,7 @@ def delete_listing(request, id):
 
 
 
-@login_required
+@register_required
 def toggle_bookmark(request, id):
     listing = Listing.objects.get(id=id)
     bookmark = Bookmark.objects.filter(listing=listing, user=request.user).first()

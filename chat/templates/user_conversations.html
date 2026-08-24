@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    {% if conversations %}
+
+        {% for conversation in conversations %}
+
+            <a href="{% url 'chat:conversation' conversation.id %}">
+
+                {% if request.user == conversation.seller %}
+
+                    {{ conversation.customer.username }} - {{ conversation.listing.title }}
+
+                {% else %}
+
+                    {{ conversation.seller.username }} - {{ conversation.listing.title }}
+
+                {% endif %}
+                
+            </a>
+            <br>
+        {% endfor %}
+
+    {% else %}
+
+            <center><h3>هنوز گفتگویی ندارید</h3></center>
+
+    {% endif %}
+
+{% endblock %}
