@@ -1,17 +1,104 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
 
-    <form method="POST">
 
-        {% csrf_token %}
+<section class="otp-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="otp-shell">
 
-        <input name="phone" id="phone" type="text" placeholder="... شماره تلفن خود را وارد کنید"/>
-        {% if message %}
-            {{ message }}
-        {% endif %}
-        <button type="submit">ارسال</button>
+            <!-- Side panel -->
+            <aside class="otp-aside">
+                <h2>با یک پیامک وارد شوید</h2>
+                <p>نیازی به رمز عبور نیست؛ کد تأیید را برای شماره موبایل شما می‌فرستیم.</p>
+                <ul class="otp-perks">
+                    <li><i class="lni lni-checkmark-circle" aria-hidden="true"></i> بدون نیاز به رمز عبور</li>
+                    <li><i class="lni lni-checkmark-circle" aria-hidden="true"></i> ثبت‌نام خودکار برای کاربران جدید</li>
+                </ul>
+            </aside>
 
-    </form>
+            <!-- Form panel -->
+            <div class="otp-main">
 
-{% endblock content %}
+                <div class="otp-progress" aria-hidden="true">
+                    <span class="is-active"></span>
+                    <span></span>
+                </div>
+                <p class="otp-step-text">مرحله ۱ از ۲: شماره موبایل</p>
+
+                <h1>ورود به حساب کاربری</h1>
+                <p class="otp-lead">برای ورود یا ثبت‌نام، شماره موبایل خود را وارد کنید.</p>
+
+                <form method="POST" id="otp-form" novalidate>
+                    {% csrf_token %}
+
+                    <label class="otp-label" for="phone">شماره موبایل</label>
+                    <div class="otp-field">
+                        <i class="lni lni-phone" aria-hidden="true"></i>
+                        <input
+                            name="phone"
+                            id="phone"
+                            type="tel"
+                            inputmode="tel"
+                            placeholder="09123456789"
+                            dir="ltr"
+                            autocomplete="tel"
+                            autofocus
+                            required
+                            aria-describedby="phone-hint"
+                        >
+                    </div>
+                    <p class="otp-hint" id="phone-hint">کد تأیید به این شماره پیامک می‌شود.</p>
+
+                    <button type="submit" class="otp-submit" id="otp-submit">
+                        <span>ارسال کد تأیید</span>
+                        <i class="lni lni-arrow-left" aria-hidden="true"></i>
+                    </button>
+                </form>
+
+                <!-- Message -->
+                {% if message %}
+                    <div class="otp-alert" role="alert">{{ message }}</div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var form = document.getElementById('otp-form');
+        var phone = document.getElementById('phone');
+        var btn = document.getElementById('otp-submit');
+        var label = btn.querySelector('span');
+        var idleText = label.textContent;
+
+
+        function toEnglishDigits(str) {
+            return str
+                .replace(/[۰-۹]/g, function (d) { return d.charCodeAt(0) - 1776; })
+                .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; });
+        }
+
+        phone.addEventListener('input', function () {
+            var fixed = toEnglishDigits(phone.value);
+            if (fixed !== phone.value) phone.value = fixed;
+        });
+
+
+        form.addEventListener('submit', function () {
+            phone.value = toEnglishDigits(phone.value.trim());
+            btn.disabled = true;
+            label.textContent = 'در حال ارسال…';
+        });
+
+
+        window.addEventListener('pageshow', function () {
+            btn.disabled = false;
+            label.textContent = idleText;
+        });
+    })();
+</script>
+
+{% endblock %}

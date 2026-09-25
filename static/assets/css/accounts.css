@@ -1,0 +1,916 @@
+/* ==========================================================================
+   1. Tokens + page wrapper (shared)
+   ========================================================================== */
+.otp-page,
+.profile-page,
+.listings-page,
+.edit-page,
+.detail-page {
+    --ac-brand: #5830e0;
+    --ac-brand-dark: #4322b8;
+    --ac-navy: #081828;
+    --ac-ink: #1b2a3b;
+    --ac-muted: #667589;
+    --ac-line: #dfe5ee;
+    --ac-surface: #f4f6fb;
+    --ac-tint: #efeafd;
+    --ac-danger: #b42318;
+    --ac-danger-bg: #fff1f0;
+
+    position: relative;
+    padding: 150px 0 90px;
+    /* dark band behind the top of the card keeps the site header readable */
+    background: linear-gradient(to bottom, var(--ac-navy) 0, var(--ac-navy) 300px, var(--ac-surface) 300px);
+    font-family: "Vazirmatn", "Vazir", "IRANSans", Tahoma, sans-serif;
+    color: var(--ac-ink);
+}
+
+
+/* ==========================================================================
+   2. Card (shared)
+   ========================================================================== */
+.otp-shell,
+.profile-card,
+.listings-card,
+.edit-card,
+.detail-card {
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -24px rgba(8, 24, 40, .45);
+}
+
+.otp-shell      { display: flex; max-width: 860px; }
+.profile-card   { max-width: 520px; }
+.listings-card  { max-width: 720px; }
+.edit-card      { max-width: 560px; }
+
+
+/* ==========================================================================
+   3. Row links, icon tiles, focus rings (shared)
+   ========================================================================== */
+
+/* clickable rows: profile actions + listing/bookmark rows */
+.profile-link,
+.listings-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.7;
+    text-decoration: none;
+    color: var(--ac-ink);
+    transition: background .15s;
+}
+
+.profile-link:hover,
+.listings-item:hover {
+    background: var(--ac-surface);
+    color: var(--ac-ink);
+}
+
+/* square icon tile at the start of a row */
+.profile-link .icon,
+.listings-item .icon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--ac-tint);
+    font-size: 18px;
+    color: var(--ac-brand);
+}
+
+.profile-link .chevron,
+.listings-item .chevron {
+    flex: none;
+    font-size: 14px;
+    color: #a3aebd;
+}
+
+/* keyboard focus rings */
+.otp-submit:focus-visible,
+.edit-submit:focus-visible,
+.otp-resend:focus-visible,
+.listings-add:focus-visible {
+    outline: 3px solid rgba(88, 48, 224, .35);
+    outline-offset: 2px;
+}
+
+.profile-link:focus-visible,
+.listings-item:focus-visible {
+    outline: 3px solid rgba(88, 48, 224, .35);
+    outline-offset: -1px;
+}
+
+
+/* ==========================================================================
+   4. OTP pages (send_otp.html / verify_otp.html)
+   ========================================================================== */
+
+/* ---------- side panel ---------- */
+.otp-aside {
+    flex: 0 0 38%;
+    padding: 44px 32px;
+    background: var(--ac-brand);
+    color: #fff;
+}
+
+.otp-aside h2 {
+    margin: 0 0 12px;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: #fff;
+}
+
+.otp-aside p {
+    margin: 0 0 28px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .85);
+}
+
+.otp-perks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.otp-perks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.otp-perks i {
+    font-size: 18px;
+}
+
+/* ---------- form panel ---------- */
+.otp-main {
+    flex: 1;
+    padding: 44px 40px;
+}
+
+.otp-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.otp-progress span {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--ac-line);
+}
+
+.otp-progress span.is-active {
+    background: var(--ac-brand);
+}
+
+.otp-step-text {
+    margin: 0 0 28px;
+    font-size: 13px;
+    color: var(--ac-muted);
+}
+
+.otp-main h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--ac-ink);
+}
+
+.otp-lead {
+    margin: 0 0 28px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--ac-muted);
+}
+
+.otp-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ac-ink);
+}
+
+.otp-hint {
+    margin: 10px 0 24px;
+    font-size: 13px;
+    color: var(--ac-muted);
+}
+
+/* ---------- phone field (send_otp.html) ---------- */
+.otp-field {
+    position: relative;
+}
+
+.otp-field i {
+    position: absolute;
+    inset-inline-start: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--ac-brand);
+    pointer-events: none;
+}
+
+.otp-field input {
+    width: 100%;
+    height: 54px;
+    padding: 0 16px;
+    padding-inline-start: 46px;
+    border: 1.5px solid var(--ac-line);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 17px;
+    letter-spacing: .06em;
+    text-align: right;
+    color: var(--ac-ink);
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.otp-field input::placeholder {
+    color: #a3aebd;
+    letter-spacing: .06em;
+}
+
+/* ---------- code field (verify_otp.html) ---------- */
+/* one wide, centered field with spaced digits */
+.otp-code input {
+    width: 100%;
+    height: 62px;
+    padding: 0 16px;
+    padding-left: calc(16px + .5em); /* balances the trailing letter-spacing so digits look centered */
+    border: 1.5px solid var(--ac-line);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: .5em;
+    text-align: center;
+    color: var(--ac-ink);
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.otp-code input::placeholder {
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #a3aebd;
+}
+
+.otp-field input:focus,
+.otp-code input:focus {
+    outline: none;
+    border-color: var(--ac-brand);
+    box-shadow: 0 0 0 4px rgba(88, 48, 224, .14);
+}
+
+/* ---------- submit button ---------- */
+.otp-submit,
+.edit-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 54px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--ac-brand);
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.otp-submit:hover,
+.edit-submit:hover {
+    background: var(--ac-brand-dark);
+}
+
+.otp-submit:disabled,
+.edit-submit:disabled {
+    opacity: .7;
+    cursor: wait;
+}
+
+/* ---------- message ---------- */
+.otp-alert,
+.edit-alert {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--ac-danger-bg);
+    color: var(--ac-danger);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* ---------- timer + resend row (verify_otp.html) ---------- */
+.otp-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ac-line);
+}
+
+.otp-timer {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ac-muted);
+}
+
+.otp-timer #timer {
+    display: inline-block;
+    min-width: 3.2em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ac-ink);
+}
+
+.otp-resend {
+    flex: none;
+    padding: 8px 16px;
+    border: 1.5px solid var(--ac-brand);
+    border-radius: 8px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ac-brand);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.otp-resend:hover:not(:disabled) {
+    background: var(--ac-brand);
+    color: #fff;
+}
+
+.otp-resend:disabled {
+    border-color: var(--ac-line);
+    color: #a3aebd;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================================================
+   5. Profile page (user_profile.html)
+   ========================================================================== */
+
+/* ---------- identity ---------- */
+.profile-head {
+    padding: 40px 32px 28px;
+    text-align: center;
+}
+
+.profile-avatar {
+    display: block;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 18px;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    background: var(--ac-tint);
+    box-shadow: 0 0 0 2px var(--ac-line);
+    object-fit: cover;
+}
+
+/* fallback when the user has no avatar */
+.profile-avatar--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--ac-brand);
+}
+
+.profile-name {
+    margin: 0 0 6px;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--ac-ink);
+    word-break: break-word;
+}
+
+.profile-city {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 15px;
+    color: var(--ac-muted);
+}
+
+.profile-city i {
+    font-size: 16px;
+    color: var(--ac-brand);
+}
+
+/* ---------- actions ---------- */
+.profile-actions {
+    margin: 0;
+    padding: 8px 12px 16px;
+    border-top: 1px solid var(--ac-line);
+    list-style: none;
+}
+
+.profile-actions li + li {
+    margin-top: 4px;
+}
+
+.profile-link .label {
+    flex: 1;
+}
+
+/* logout: separated and in a warning color */
+.profile-actions .is-logout {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--ac-line);
+}
+
+.profile-link--danger {
+    color: var(--ac-danger);
+}
+
+.profile-link--danger:hover {
+    background: var(--ac-danger-bg);
+    color: var(--ac-danger);
+}
+
+.profile-link--danger .icon {
+    background: var(--ac-danger-bg);
+    color: var(--ac-danger);
+}
+
+
+/* ==========================================================================
+   6. Listings + bookmarks pages (user_listings.html / user_bookmarks.html)
+   ========================================================================== */
+
+/* ---------- header ---------- */
+.listings-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--ac-line);
+}
+
+.listings-head h1 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--ac-ink);
+}
+
+.listings-count {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: var(--ac-muted);
+}
+
+/* ---------- add button ---------- */
+.listings-add {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 22px;
+    border-radius: 10px;
+    background: var(--ac-brand);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+    transition: background .15s;
+}
+
+.listings-add:hover {
+    background: var(--ac-brand-dark);
+    color: #fff;
+}
+
+/* ---------- list ---------- */
+.listings-list {
+    margin: 0;
+    padding: 12px;
+    list-style: none;
+}
+
+.listings-list li + li {
+    margin-top: 4px;
+}
+
+.listings-item .title {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+/* optional second line inside .title, e.g. conversations: other user's name + listing title */
+.listings-item .line-main {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ac-ink);
+}
+
+.listings-item .line-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ac-muted);
+}
+
+/* ---------- empty state ---------- */
+.listings-empty {
+    padding: 56px 32px 60px;
+    text-align: center;
+}
+
+.listings-empty .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--ac-tint);
+    font-size: 30px;
+    color: var(--ac-brand);
+}
+
+.listings-empty h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ac-ink);
+}
+
+.listings-empty p {
+    margin: 0 0 24px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--ac-muted);
+}
+
+/* no button below the text (e.g. empty bookmarks) */
+.listings-empty p:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ==========================================================================
+   7. Edit profile page (edit_profile.html)
+   ========================================================================== */
+
+.edit-head {
+    padding: 28px 32px 22px;
+    border-bottom: 1px solid var(--ac-line);
+}
+
+.edit-head h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--ac-ink);
+}
+
+.edit-head p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--ac-muted);
+}
+
+.edit-form {
+    padding: 28px 32px 32px;
+}
+
+/* non-field error box inside the form: no top margin, spacing below instead */
+.edit-alert {
+    margin: 0 0 22px;
+}
+
+/* ---------- fields ---------- */
+.edit-field {
+    margin-bottom: 22px;
+}
+
+.edit-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ac-ink);
+}
+
+/* Django renders plain <input>/<select>, so they are styled from here */
+.edit-form input[type="text"],
+.edit-form input[type="number"],
+.edit-form select,
+.edit-form textarea {
+    width: 100%;
+    height: 54px;
+    padding: 0 16px;
+    border: 1.5px solid var(--ac-line);
+    border-radius: 10px;
+    background-color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--ac-ink);
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.edit-form select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-inline-end: 44px; /* room for the arrow (on the left in RTL) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23667589' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 16px center;
+    background-size: 14px;
+    cursor: pointer;
+}
+
+.edit-form input[type="text"]:focus,
+.edit-form input[type="number"]:focus,
+.edit-form select:focus,
+.edit-form textarea:focus {
+    outline: none;
+    border-color: var(--ac-brand);
+    box-shadow: 0 0 0 4px rgba(88, 48, 224, .14);
+}
+
+/* city select stays disabled until a province is chosen */
+.edit-form select:disabled {
+    background-color: var(--ac-surface);
+    color: var(--ac-muted);
+    cursor: not-allowed;
+}
+
+.edit-hint {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--ac-muted);
+    word-break: break-all;
+}
+
+/* ---------- validation ---------- */
+.edit-error {
+    margin: 8px 0 0;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--ac-danger);
+}
+
+.edit-field.has-error input[type="text"],
+.edit-field.has-error input[type="number"],
+.edit-field.has-error select,
+.edit-field.has-error textarea {
+    border-color: var(--ac-danger);
+}
+
+.edit-field.has-error input[type="text"]:focus,
+.edit-field.has-error input[type="number"]:focus,
+.edit-field.has-error select:focus,
+.edit-field.has-error textarea:focus {
+    box-shadow: 0 0 0 4px rgba(180, 35, 24, .14);
+}
+
+/* ---------- avatar picker ---------- */
+.edit-avatar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.edit-avatar-preview {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 88px;
+    height: 88px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--ac-tint);
+    box-shadow: 0 0 0 2px var(--ac-line);
+    font-size: 34px;
+    color: var(--ac-brand);
+    overflow: hidden;
+}
+
+.edit-avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-avatar-side {
+    position: relative;
+    min-width: 0;
+}
+
+/* the real file input stays in the DOM (and focusable) but is visually hidden */
+.edit-avatar-side input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.edit-avatar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border: 1.5px solid var(--ac-brand);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ac-brand);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+.edit-avatar-btn:hover {
+    background: var(--ac-brand);
+    color: #fff;
+}
+
+.edit-avatar-side input[type="file"]:focus-visible + .edit-avatar-btn {
+    outline: 3px solid rgba(88, 48, 224, .35);
+    outline-offset: 2px;
+}
+
+.edit-submit {
+    margin-top: 8px;
+}
+
+/* ==========================================================================
+   8. Responsive
+   ========================================================================== */
+
+/* OTP pages stack the card below 768px */
+@media (max-width: 767.98px) {
+    .otp-page {
+        padding: 120px 0 60px;
+        background: linear-gradient(to bottom, var(--ac-navy) 0, var(--ac-navy) 220px, var(--ac-surface) 220px);
+    }
+
+    .otp-shell {
+        flex-direction: column;
+        margin: 0 4px;
+    }
+
+    .otp-aside {
+        flex: none;
+        padding: 24px 24px 20px;
+    }
+
+    .otp-aside h2 {
+        font-size: 19px;
+        margin-bottom: 6px;
+    }
+
+    .otp-aside p {
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    .otp-perks {
+        display: none;
+    }
+
+    .otp-main {
+        padding: 28px 24px 32px;
+    }
+
+    .otp-main h1 {
+        font-size: 22px;
+    }
+
+    .otp-meta {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+}
+
+/* Profile, listings, bookmarks, edit and detail pages tighten up below 576px (shell only) */
+@media (max-width: 575.98px) {
+    .profile-page,
+    .listings-page,
+    .edit-page,
+    .detail-page {
+        padding: 120px 0 60px;
+        background: linear-gradient(to bottom, var(--ac-navy) 0, var(--ac-navy) 220px, var(--ac-surface) 220px);
+    }
+
+    .profile-card,
+    .listings-card,
+    .edit-card,
+    .detail-card {
+        margin: 0 4px;
+    }
+
+    .edit-head {
+        padding: 22px 20px 18px;
+    }
+
+    .edit-head h1 {
+        font-size: 21px;
+    }
+
+    .edit-form {
+        padding: 22px 20px 26px;
+    }
+
+    .edit-avatar {
+        gap: 14px;
+    }
+
+    .profile-head {
+        padding: 32px 20px 24px;
+    }
+
+    .profile-name {
+        font-size: 21px;
+    }
+
+    .listings-head {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 22px 20px;
+    }
+
+    .listings-head h1 {
+        font-size: 21px;
+    }
+
+    .listings-add {
+        width: 100%;
+    }
+
+    .listings-empty {
+        padding: 44px 20px 48px;
+    }
+}
+
+
+/* ==========================================================================
+   9. Reduced motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .otp-field input,
+    .otp-code input,
+    .otp-submit,
+    .otp-resend,
+    .profile-link,
+    .listings-add,
+    .listings-item,
+    .edit-form input[type="text"],
+    .edit-form input[type="number"],
+    .edit-form select,
+    .edit-form textarea,
+    .edit-avatar-btn,
+    .edit-submit {
+        transition: none;
+    }
+}

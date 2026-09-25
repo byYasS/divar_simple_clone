@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from .models import Listing, ListingImage, Bookmark
+from .models import Listing, ListingImage, Bookmark, Category
+from location.models import Province, City
 from account.decorators import register_required
 from django.db import transaction
 from .forms import ListingForm
@@ -24,10 +25,22 @@ def validate_images(images):
     return errors 
     
     
-    
+
+        
+        
 def listing_page(request):
-    listings =  Listing.objects.all()
-    return render(request, "list.html", {"listings":listings})
+    user_city = request.user.profile.city
+    listings =  Listing.objects.filter(city__name=user_city.name if user_city else "تهران").select_related("seller", "category")
+    
+    if listings: 
+        for listing in listings:
+            first_image = ListingImage.objects.filter(listing=listing)[0]
+    else:
+        first_image = None
+        
+    categories = Category.objects.all()
+  
+    return render(request, "list.html", {"listings":listings, "first_image":first_image, "categories":categories})
 
 
 
@@ -47,6 +60,24 @@ def listing_detail(request, id):
         is_bookmarked = False        
     
     return render(request, "detail.html", {"listing":listing, "images":images, "is_seller":is_seller, "is_bookmarked":is_bookmarked})
+
+
+
+def search_listing(request):
+    if request.method == "GET":
+        keyword = request.GET.get("keyword")
+        listings = Listing.objects.filter(title__icontains=keyword)
+        if listings:
+            for listing in listings:
+                first_image = ListingImage.objects.filter(listing=listing)[0]
+                categories = Category.objects.filter(listings=listing)
+        else:
+            first_image = None
+            categories = None
+            
+    search_mode = True
+            
+    return render(request, "list.html", {"listings":listings, "first_image":first_image, "categories":categories, "search_mode":search_mode})
 
 
 
@@ -107,7 +138,10 @@ def update_listing(request, id):
     listing = get_object_or_404(Listing, id=id, seller=request.user)
     images = ListingImage.objects.filter(listing=listing)
     updating_image_errors = []
-    context = {}
+    context = {
+        "edit_mode":True,
+        "images":images  
+    }
     
     if request.method == "POST":
         deleted_image_ids = json.loads(request.POST.get("deleted_images"))
@@ -129,12 +163,11 @@ def update_listing(request, id):
                 updating_image_errors.extend(validate_images(new_images))   
                             
             remaining_images = images.exclude(id__in=deleted_image_ids)
-            context = {
-                "form":form,
-                "errors":updating_image_errors,
-                "images":remaining_images,
-                "edit_mode":True
-            }
+            
+            context["form"] = form
+            context["images"] = remaining_images
+            context["errors"] = updating_image_errors
+    
             
             if len(updating_image_errors) > 0:
                 return render(request, "update_listing.html", context)
@@ -153,9 +186,8 @@ def update_listing(request, id):
             return redirect(f"/listings/{id}/")     
     else:
         form = ListingForm(instance=listing)
-        
-    context.pop("errors", None)
-    context["images"] = images
+        context["form"] = form
+    
 
     return render(request, "update_listing.html", context)
      

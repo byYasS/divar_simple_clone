@@ -1,15 +1,157 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
 
-    {% for listing in listings %}
+<!-- Start Hero Area -->
+    <section class="hero-area overlay">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1 col-md-12 col-12">
+                    <div class="hero-text text-center">
+                        <!-- Start Hero Text -->
+                        <div class="section-heading">
+                            <h2 class="wow fadeInUp" data-wow-delay=".3s">به کلون دیوار خوش آمدید</h2>
+                            <p class="wow fadeInUp" data-wow-delay=".5s">آگهی خود را ثبت کنید و هر چیزی که می خواهید را سریع پیدا کنید</p>
+                        </div>
 
-        <li>
+                        <!-- Start Search Form -->
+                            <form method="GET" dir="rtl" action="{% url 'listing:search' %}">
 
-            <a href="{% url 'listing:detail_page' listing.id %}">{{listing.title}}</a>
+                                <div class="search-form wow fadeInUp" data-wow-delay=".7s">
 
-        </li>
-        
-    {% endfor %}
-    
+                                    <div class="row justify-content-center">
+
+                                        <div class="col-lg-6 col-md-7 col-12 p-0">
+                                            <div class="search-input">
+                                                <label for="keyword">
+                                                    <i class="lni lni-search-alt theme-color"></i>
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    name="keyword"
+                                                    id="keyword"
+                                                    placeholder="نام آگهی مورد نظرتان را وارد کنید">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-2 col-md-3 col-12 p-0">
+                                            <div class="search-btn button">
+                                                <button class="btn" type="submit">
+                                                    <i class="lni lni-search-alt"></i>
+                                                    جستجو
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Hero Area -->
+
+    <!-- Start Categories Area -->
+    <section class="categories" dir="rtl">
+        <div class="container">
+            <div class="cat-inner">
+                <div class="row">
+                    <div class="col-12 p-0">
+                        <div class="category-slider">
+                            <!-- Start Single Category -->
+                            
+                            {% for category in categories %}
+                                <a href="category.html" class="single-cat">
+                                    <div class="icon">
+                                        <img src="{{ category.icon.url }}" alt="#">
+                                    </div>
+                                    <h3>{{ category.name }}</h3>
+                                    <h5 class="total">{{ category.listings.count }}</h5>
+                                </a>
+                            {% endfor %}
+                            <!-- End Single Category -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- /End Categories Area -->
+
+    <!-- Start Items Grid Area -->
+    <section class="items-grid section custom-padding" dir="rtl">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        {% if search_mode %}
+                            <h2 class="wow fadeInUp" data-wow-delay=".4s">
+                                {% if listings %}آگهی های پیدا شده{% else %}آگهی پیدا نشد{% endif %}
+                            </h2>
+                            <p class="wow fadeInUp" data-wow-delay=".6s">
+                                {% if listings %} آگهی های ثبت شده مشابه با این نام {% else %}آگهی ای با این نام ثبت نشده{% endif %}
+                            </p>
+                        {% else %}
+                            <h2 class="wow fadeInUp" data-wow-delay=".4s">
+                                {% if listings %}جدیدترین آگهی ها{% else %}برای شهر شما آگهی ای پیدا نشد{% endif %}
+                            </h2>
+                            <p class="wow fadeInUp" data-wow-delay=".6s">
+                                {% if listings %}آخرین آگهی های ثبت شده را اینجا مشاهده کنید{% else %}اولین نفری باشید که آگهی خود را ثبت می کند{% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="single-head">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-12">
+                        <!-- Start Single Grid -->
+                        {% for listing in listings %}
+                        <div class="single-grid wow fadeInUp" data-wow-delay=".2s">
+                            <div class="image">
+                                <a href="item-details.html" class="thumbnail"><img src="{{ first_image.image.url }}" alt="#"></a>
+                                <div class="author">
+                                    <div class="author-image">
+                                        
+                                        <a href="javascript:void(0)"><img src="{{ listing.seller.profile.avatar.url }}" alt="#">
+                                        
+                                            <span>{{ listing.seller.username }}</span></a>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="content">
+                                <div class="top-content">
+                                    <a href="javascript:void(0)" class="tag">{{ listing.category }}</a>
+                                    <h3 class="title">
+                                        <a href="{% url 'listing:detail_page' listing.id %}">{{ listing.title }}</a>
+                                    </h3>
+                                    <p class="update-time">آخرین به روز رسانی : {{ listing.updated_at }}</p>
+                                    
+                                    <ul class="info-list">
+                                        <li><a href="javascript:void(0)"><i class="lni lni-map-marker"></i> {{ listing.city }}</a></li>
+                                        <li><a href="javascript:void(0)"><i class="lni lni-timer"></i> {{ listing.created_at }}</a></li>
+                                    </ul>
+                                </div>
+                                <div class="bottom-content">
+                                    <p class="price">قیمت :<span>{{ listing.price }}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <!-- End Single Grid -->
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- /End Items Grid Area -->
+
+
 {% endblock content %}

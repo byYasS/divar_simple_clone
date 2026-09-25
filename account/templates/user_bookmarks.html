@@ -1,23 +1,54 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
 
-    {% if bookmarks %}
+<!-- Same layout as user_listings.html, so it reuses listings.css -->
+<link rel="stylesheet" href="{% static 'css/listings.css' %}">
 
-        {% for bookmark in bookmarks %}
+<section class="listings-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="listings-card">
 
-            <li>
+            <!-- Header -->
+            <header class="listings-head">
+                <div>
+                    <h1>آگهی‌های نشان‌شده</h1>
+                    {% if bookmarks %}
+                        <p class="listings-count">{{ bookmarks|length }} آگهی نشان‌شده</p>
+                    {% endif %}
+                </div>
+            </header>
 
-                <a href="{% url 'listing:detail_page' bookmark.listing.id %}">{{ bookmark.listing.title }}</a>
+            {% if bookmarks %}
 
-            </li>
+                <!-- Bookmarks -->
+                <ul class="listings-list">
+                    {% for bookmark in bookmarks %}
+                        <li>
+                            <a class="listings-item" href="{% url 'listing:detail_page' bookmark.listing.id %}">
+                                <span class="icon" aria-hidden="true"><i class="lni lni-bookmark"></i></span>
+                                <span class="title">{{ bookmark.listing.title }}</span>
+                                <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
 
-        {% endfor %}
+            {% else %}
 
-    {% else %}
-        
-        <center><h3>آگهی نشان شده ای وجود ندارد</h3></center>
+                <!-- Empty state -->
+                <div class="listings-empty">
+                    <div class="icon" aria-hidden="true"><i class="lni lni-bookmark"></i></div>
+                    <h2>آگهی نشان شده‌ای وجود ندارد</h2>
+                    <p>آگهی‌های مورد علاقه‌تان را نشان کنید تا بعداً به‌راحتی پیدایشان کنید.</p>
+                </div>
 
-    {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+</section>
 
 {% endblock content %}

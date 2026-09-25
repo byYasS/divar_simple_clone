@@ -9,6 +9,9 @@ class ListingConversation(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="conversations_as_customer")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     
+    class Meta:
+        ordering = ["-created_at"]
+    
     def __str__(self):
         return f"{self.listing} : {self.seller} - {self.customer}"
     

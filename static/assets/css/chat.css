@@ -1,0 +1,219 @@
+.chat-page {
+    --c-brand: #5830e0;
+    --c-navy: #081828;
+    --c-ink: #1b2a3b;
+    --c-muted: #667589;
+    --c-line: #dfe5ee;
+    --c-surface: #f4f6fb;
+    --c-mine-bg: #5830e0;
+    --c-mine-text: #ffffff;
+    --c-theirs-bg: #ffffff;
+    --c-theirs-text: #1b2a3b;
+
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-top: 84px; /* clears a fixed site header; adjust to match yours */
+    background: var(--c-surface);
+    font-family: "Vazirmatn", "Vazir", "IRANSans", Tahoma, sans-serif;
+    color: var(--c-ink);
+}
+
+.chat-page .container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 16px;
+}
+
+/* ---------- card ---------- */
+.chat-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--c-surface);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -24px rgba(8, 24, 40, .35);
+}
+
+/* ---------- header ---------- */
+.chat-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--c-line);
+}
+
+.chat-avatar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--c-brand);
+    font-size: 18px;
+    color: #fff;
+}
+
+.chat-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--c-ink);
+    /* filled in by JS; reserves a line's height before it does */
+    min-height: 1.4em;
+}
+
+/* ---------- message log ---------- */
+/* direction: ltr on the log + direction: rtl on each bubble is a deliberate
+   trick: it makes flex align-self: flex-end / flex-start map to a fixed,
+   physical right / left regardless of the page's own RTL direction, while
+   the Persian text inside each bubble still reads correctly. */
+.chat-log {
+    direction: ltr;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.chat-bubble {
+    direction: rtl;
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.9;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(8, 24, 40, .08);
+}
+
+.chat-bubble--mine {
+    align-self: flex-end;
+    border-end-end-radius: 4px;
+    background: var(--c-mine-bg);
+    color: var(--c-mine-text);
+}
+
+.chat-bubble--theirs {
+    align-self: flex-start;
+    border-end-start-radius: 4px;
+    background: var(--c-theirs-bg);
+    color: var(--c-theirs-text);
+}
+
+.chat-bubble-text {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.chat-bubble-time {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    text-align: left;
+    opacity: .7;
+}
+
+/* ---------- input row ---------- */
+.chat-input-row {
+    display: flex;
+    align-items: center;
+    flex: none;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #fff;
+    border-top: 1px solid var(--c-line);
+}
+
+.chat-input {
+    flex: 1;
+    height: 46px;
+    padding: 0 16px;
+    border: 1.5px solid var(--c-line);
+    border-radius: 999px;
+    background: var(--c-surface);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--c-ink);
+    transition: border-color .15s, background .15s;
+}
+
+.chat-input::placeholder {
+    color: #a3aebd;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--c-brand);
+    background: #fff;
+}
+
+.chat-send {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--c-brand);
+    font-size: 17px;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.chat-send i {
+    /* paper-plane glyph leans toward its own top-right; nudge it visually centered */
+    transform: translateX(-1px);
+}
+
+.chat-send:hover {
+    background: #4322b8;
+}
+
+.chat-send:focus-visible {
+    outline: 3px solid rgba(88, 48, 224, .35);
+    outline-offset: 2px;
+}
+
+.chat-send:disabled {
+    background: #a3aebd;
+    cursor: not-allowed;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 575.98px) {
+    .chat-page {
+        padding-top: 72px;
+    }
+
+    .chat-card {
+        border-radius: 0;
+    }
+
+    .chat-bubble {
+        max-width: 88%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-input,
+    .chat-send {
+        transition: none;
+    }
+}

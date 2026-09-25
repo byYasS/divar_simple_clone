@@ -1,24 +1,160 @@
-<form method="post" enctype="multipart/form-data" >
+{% load static %}
 
-    {% csrf_token %}
-    
-    {{ form.as_p }}
 
-    <input type="file" id="images" name="images" multiple accept="image/*"/>
+<section class="edit-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="edit-card edit-card--wide">
 
-    <div class="text-danger">
+            <!-- Header -->
+            <header class="edit-head">
+                <h1>{% if edit_mode %}ویرایش آگهی{% else %}ثبت آگهی جدید{% endif %}</h1>
+                <p>{% if edit_mode %}اطلاعات آگهی خود را ویرایش کنید.{% else %}اطلاعات آگهی خود را کامل وارد کنید.{% endif %}</p>
+            </header>
 
-        {% for error in errors %}
-            {{ error }} <br>
-        {% endfor %}
+            <form method="post" enctype="multipart/form-data" class="edit-form" id="listing-form">
 
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="otp-alert edit-alert" role="alert">
+                        {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Title -->
+                <div class="edit-field{% if form.title.errors %} has-error{% endif %}">
+                    <label class="edit-label" for="{{ form.title.id_for_label }}">عنوان آگهی</label>
+                    {{ form.title }}
+                    {% for error in form.title.errors %}
+                        <p class="edit-error" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Category + price -->
+                <div class="edit-row">
+                    <div class="edit-field{% if form.category.errors %} has-error{% endif %}">
+                        <label class="edit-label" for="{{ form.category.id_for_label }}">دسته‌بندی</label>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}
+                            <p class="edit-error" role="alert">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="edit-field{% if form.price.errors %} has-error{% endif %}">
+                        <label class="edit-label" for="{{ form.price.id_for_label }}">قیمت</label>
+                        {{ form.price }}
+                        {% for error in form.price.errors %}
+                            <p class="edit-error" role="alert">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="edit-field{% if form.description.errors %} has-error{% endif %}">
+                    <label class="edit-label" for="{{ form.description.id_for_label }}">توضیحات</label>
+                    {{ form.description }}
+                    {% for error in form.description.errors %}
+                        <p class="edit-error" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Images -->
+                <div class="edit-field{% if errors %} has-error{% endif %}">
+                    <span class="edit-label">تصاویر آگهی</span>
+
+                    {% if edit_mode and images %}
+                        <!-- Current images (removal is handled by the script in update_listing.html) -->
+                        <div class="edit-current">
+                            <p class="edit-current-title">تصاویر فعلی</p>
+                            <div class="edit-current-grid">
+                                {% for image in images %}
+                                    <div class="image_box edit-current-item">
+                                        <img src="{{ image.image.url }}" alt="">
+                                        <button type="button" class="delete_image" data-index="{{ image.id }}">حذف</button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="edit-upload">
+                        <input type="file" id="images" name="images" multiple accept="image/*"/>
+                        <label for="images" class="edit-upload-label">
+                            <i class="lni lni-upload" aria-hidden="true"></i>
+                            <span class="t">انتخاب تصاویر</span>
+                            <span class="s" id="images-count">می‌توانید چند تصویر را با هم انتخاب کنید.</span>
+                        </label>
+                    </div>
+
+                    <div class="edit-previews" id="image-previews"></div>
+
+                    <p class="edit-hint">فرمت‌های مجاز: <bdi dir="ltr">jpg, jpeg, png</bdi></p>
+
+                    {% for error in errors %}
+                        <p class="edit-error" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {% if edit_mode %}
+                    <input type="hidden" name="deleted_images" id="deleted_images">
+                    <button type="submit" class="edit-submit" id="listing-submit"><span>ویرایش آگهی</span></button>
+                {% else %}
+                    <button type="submit" class="edit-submit" id="listing-submit"><span>ثبت آگهی</span></button>
+                {% endif %}
+
+            </form>
+
+        </div>
     </div>
-    <p>jpg, jpeg, png : فرمت های مجاز</p>
-    <br>
-    {% if edit_mode %}
-        <input type="hidden" name="deleted_images" id="deleted_images">
-        <button type="submit">ویرایش آگهی</button>
-    {% else %}
-        <button type="submit">ثبت آگهی</button>
-    {% endif %}
-</form>
+</section>
+
+<!-- UI-only helpers: preview the chosen images + prevent double submits -->
+<script>
+    (function () {
+        var form = document.getElementById('listing-form');
+        var input = document.getElementById('images');
+        var box = document.getElementById('image-previews');
+        var countText = document.getElementById('images-count');
+        var btn = document.getElementById('listing-submit');
+        var label = btn.querySelector('span');
+        var idleCount = countText.textContent;
+        var idleBtn = label.textContent;
+
+        input.addEventListener('change', function () {
+            box.innerHTML = '';
+            var files = input.files ? Array.prototype.slice.call(input.files) : [];
+            var shown = 0;
+
+            files.forEach(function (file) {
+                if (!file.type || file.type.indexOf('image/') !== 0) return;
+                var wrap = document.createElement('div');
+                wrap.className = 'edit-preview';
+                var img = document.createElement('img');
+                img.alt = '';
+                img.src = URL.createObjectURL(file);
+                wrap.appendChild(img);
+                box.appendChild(wrap);
+                shown++;
+            });
+
+            countText.textContent = shown
+                ? shown.toLocaleString('fa-IR') + ' تصویر انتخاب شد'
+                : idleCount;
+        });
+
+        
+        form.addEventListener('submit', function (e) {
+            setTimeout(function () {
+                if (e.defaultPrevented) return;
+                btn.disabled = true;
+                label.textContent = 'در حال ارسال…';
+            }, 0);
+        });
+
+        
+        window.addEventListener('pageshow', function () {
+            btn.disabled = false;
+            label.textContent = idleBtn;
+        });
+    })();
+</script>

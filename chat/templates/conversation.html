@@ -1,98 +1,137 @@
 {% extends "base.html" %}
 
+{% load static %}
 
 {% block content %}
 
-    <h4 id="username"></h4>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ conversation_id|json_script:"conversation_id" }}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+
+<section class="chat-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="chat-card">
+
+            <!-- Header: other participant's name (kept as #username, filled by the socket) -->
+            <header class="chat-head">
+                <span class="chat-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+                <h1 id="username" class="chat-title"></h1>
+            </header>
+
+            <!-- Message log: was a <textarea id="chat-log">, now a bubble list with the same id -->
+            <div id="chat-log" class="chat-log" role="log" aria-live="polite" aria-label="پیام‌ها"></div>
+
+            <!-- Input row: same ids as before (#chat-message-input, #chat-message-submit) -->
+            <div class="chat-input-row">
+                <button id="chat-message-submit" type="button" class="chat-send" aria-label="ارسال پیام">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                </button>
+                <input id="chat-message-input" type="text" class="chat-input"
+                       placeholder="پیام خود را بنویسید…" autocomplete="off">
+                
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{{ conversation_id|json_script:"conversation_id" }}
+
+<script>
+    const conversation_id = JSON.parse(document.getElementById('conversation_id').textContent);
+
+    const seller_id = "{{ conversation.seller.id }}";
+    const seller_name = "{{ conversation.seller.username }}";
+    const customer_name = "{{ conversation.customer.username }}";
+
     
-    <script>
-        const conversation_id = JSON.parse(document.getElementById('conversation_id').textContent);
+    const chatLog = document.querySelector('#chat-log');
+    let myName = null;
 
-        const seller_id = "{{ conversation.seller.id }}";
-        const seller_name = "{{ conversation.seller.username }}";
-        const customer_name = "{{ conversation.customer.username }}";
+    function appendMessage(messageData) {
+        const bubble = document.createElement('div');
+        const mine = messageData.sender_name === myName;
+        bubble.className = 'chat-bubble ' + (mine ? 'chat-bubble--mine' : 'chat-bubble--theirs');
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + conversation_id
-            + '/'
-        );
+        const text = document.createElement('p');
+        text.className = 'chat-bubble-text';
+        text.textContent = messageData.message;
 
-        chatSocket.onopen = function() {
-            
-            chatSocket.send(JSON.stringify({
-                'request': "get_old_messages",
-                'conversation_id': conversation_id,
-            }));
+        const time = document.createElement('span');
+        time.className = 'chat-bubble-time';
+        time.textContent = messageData.sended_at;
+
+        bubble.appendChild(text);
+        bubble.appendChild(time);
+        chatLog.appendChild(bubble);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + conversation_id
+        + '/'
+    );
+
+    chatSocket.onopen = function() {
+
+        chatSocket.send(JSON.stringify({
+            'request': "get_old_messages",
+            'conversation_id': conversation_id,
+        }));
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const name = document.querySelector('#username');
+
+
+        if(seller_id == data.user_id){
+            name.textContent = customer_name;
+            myName = seller_name;
+        }else{
+            name.textContent = seller_name;
+            myName = customer_name;
+        };
+
+
+        const event = data.event;
+
+        if(event["response"]==="send_new_message"){
+
+            appendMessage(event["message_data"]);
+
+        }else{
+            for(let i=event.length-1 ; i>=0 ; i--){
+
+                appendMessage(event[i]);
+
+            }
         }
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const name = document.querySelector('#username');
-            
+    };
 
-            if(seller_id == data.user_id){
-                name.textContent = customer_name
-            }else{
-                name.textContent = seller_name
-            };
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
 
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.key === 'Enter') {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
 
-            const event = data.event;
-
-            if(event["response"]==="send_new_message"){
-
-                document.querySelector('#chat-log').value += (
-                    event["message_data"]["sender_name"]
-                    + ' '
-                    + event["message_data"]["message"] 
-                    + '  ' 
-                    + event["message_data"]["sended_at"]
-                    + '\n');
-
-            }else{
-                for(let i=event.length-1 ; i>=0 ; i--){
-
-                    document.querySelector('#chat-log').value += (
-                        event[i]["sender_name"]
-                        + ' '
-                        + event[i]["message"] 
-                        + '  ' 
-                        + event[i]["sended_at"] 
-                        + '\n');
-
-                } 
-            }
-            
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
-
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'request': "send_new_message",
-                'message': message,
-                'conversation_id': conversation_id,
-            }));
-            messageInputDom.value = '';
-        };
-    </script>
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'request': "send_new_message",
+            'message': message,
+            'conversation_id': conversation_id,
+        }));
+        messageInputDom.value = '';
+    };
+</script>
 
 {% endblock content %}

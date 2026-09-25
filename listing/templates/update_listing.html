@@ -1,17 +1,9 @@
 {% extends "base.html" %}
-
-<h2>ویرایش آگهی</h2>
+{% load static %}
 
 {% block content %}
 
-    {% for image in images %}
-    <div class="image_box">
-        <img src="{{ image.image.url }}" width=200px height=200px/>
-        <button class="delete_image" data-index="{{image.id}}">حذف</button>
-    </div>
-    {% endfor %}
-
-
+    
     {% include "includes/listing_form.html" %}
 
 
@@ -39,3 +31,4 @@
 </script>
 
 {% endblock content %}
+

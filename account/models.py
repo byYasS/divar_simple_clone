@@ -42,7 +42,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=50, default=generate_username, unique=True)
     verified = models.BooleanField(default=False)
     
-    USERNAME_FIELD = "username"
+    USERNAME_FIELD = "phone_number"
     
     
     

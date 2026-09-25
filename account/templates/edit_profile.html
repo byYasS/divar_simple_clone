@@ -1,15 +1,172 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
 
-    <form method="POST" enctype="multipart/form-data">
 
-        {% csrf_token %}
 
-        {{ form.as_p }}
+<section class="edit-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="edit-card">
 
-        <button type="submit">ثبت تغییرات</button>
+            <!-- Header -->
+            <header class="edit-head">
+                <h1>ویرایش پروفایل</h1>
+                <p>اطلاعات حساب کاربری خود را به‌روزرسانی کنید.</p>
+            </header>
 
-    </form>
+            <form method="POST" enctype="multipart/form-data" class="edit-form" id="edit-form">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="otp-alert edit-alert" role="alert">
+                        {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Avatar -->
+                <div class="edit-field{% if form.avatar.errors %} has-error{% endif %}">
+                    <span class="edit-label">تصویر پروفایل</span>
+                    <div class="edit-avatar">
+                        <div class="edit-avatar-preview" id="avatar-preview" aria-hidden="true">
+                            <i class="lni lni-user"></i>
+                        </div>
+                        <div class="edit-avatar-side">
+                            {{ form.avatar }}
+                            <label for="{{ form.avatar.id_for_label }}" class="edit-avatar-btn">
+                                <i class="lni lni-upload" aria-hidden="true"></i>
+                                انتخاب تصویر
+                            </label>
+                            <p class="edit-hint" id="avatar-name">این بخش اختیاری است.</p>
+                        </div>
+                    </div>
+                    {% for error in form.avatar.errors %}
+                        <p class="edit-error" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Username -->
+                <div class="edit-field{% if form.username.errors %} has-error{% endif %}">
+                    <label class="edit-label" for="{{ form.username.id_for_label }}">نام کاربری</label>
+                    {{ form.username }}
+                    {% for error in form.username.errors %}
+                        <p class="edit-error" role="alert">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Province (only used to filter the cities: it has no name, so it is never submitted or saved) + City -->
+                <div class="edit-row">
+                    <div class="edit-field">
+                        <label class="edit-label" for="province-select">استان</label>
+                        <select id="province-select" required>
+                            <option value="">انتخاب استان</option>
+                            {% for province in form.provinces %}
+                                <option value="{{ province.pk }}">{{ province.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="edit-field{% if form.city.errors %} has-error{% endif %}">
+                        <label class="edit-label" for="{{ form.city.id_for_label }}">شهر</label>
+                        {{ form.city }}
+                        {% for error in form.city.errors %}
+                            <p class="edit-error" role="alert">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="edit-submit" id="edit-submit">
+                    <span>ثبت تغییرات</span>
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var form = document.getElementById('edit-form');
+        var fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
+        var preview = document.getElementById('avatar-preview');
+        var nameHint = document.getElementById('avatar-name');
+        var btn = document.getElementById('edit-submit');
+        var label = btn.querySelector('span');
+        var idleText = label.textContent;
+        var hintText = nameHint.textContent;
+
+       
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                var file = fileInput.files && fileInput.files[0];
+                if (!file) {
+                    preview.innerHTML = '<i class="lni lni-user"></i>';
+                    nameHint.textContent = hintText;
+                    return;
+                }
+                var img = document.createElement('img');
+                img.alt = '';
+                img.src = URL.createObjectURL(file);
+                preview.innerHTML = '';
+                preview.appendChild(img);
+                nameHint.textContent = file.name;
+            });
+        }
+
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            label.textContent = 'در حال ذخیره…';
+        });
+
+        window.addEventListener('pageshow', function () {
+            btn.disabled = false;
+            label.textContent = idleText;
+        });
+    })();
+</script>
+
+<!-- Province -> city filter. Only the city select is submitted; the province select has no name. -->
+<script>
+    (function () {
+        var provinceSel = document.getElementById('province-select');
+        var citySel = document.getElementById('{{ form.city.id_for_label }}');
+        if (!provinceSel || !citySel) return;
+
+        
+        var all = Array.prototype.slice.call(citySel.options);
+        var emptyOption = all.filter(function (o) { return o.value === ''; })[0];
+        if (!emptyOption) {
+            emptyOption = document.createElement('option');
+            emptyOption.value = '';
+        }
+        var cityOptions = all.filter(function (o) { return o.value !== ''; });
+
+        function fill(provinceId, selectedCity) {
+            citySel.innerHTML = '';
+            emptyOption.textContent = provinceId ? 'انتخاب شهر' : 'ابتدا استان را انتخاب کنید';
+            citySel.appendChild(emptyOption);
+
+            cityOptions.forEach(function (o) {
+                if (o.getAttribute('data-province') === provinceId) citySel.appendChild(o);
+            });
+
+            citySel.value = selectedCity || '';
+            citySel.disabled = !provinceId;
+        }
+
+
+        var current = cityOptions.filter(function (o) { return o.selected; })[0];
+        var startProvince = current ? current.getAttribute('data-province') : '';
+        provinceSel.value = startProvince || '';
+        fill(provinceSel.value, current ? current.value : '');
+
+        provinceSel.addEventListener('change', function () {
+            fill(provinceSel.value, '');
+        });
+    })();
+</script>
 
 {% endblock content %}

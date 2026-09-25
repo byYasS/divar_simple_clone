@@ -2,98 +2,243 @@
 
 {% block content %}
 
-    <form method="post">
-        {% csrf_token %}
 
-        <input type="number" name="otp" placeholder="... کد تایید 6 رقمی را وارد کنید">
+<!-- Start Verification Area -->
+<section class="otp-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="otp-shell">
 
-        {% if message %}
-            {{ message }}
-        {% endif %}
+            <!-- Side panel -->
+            <aside class="otp-aside">
+                <h2>کد را وارد کنید</h2>
+                <p>یک پیامک حاوی کد تأیید برای شماره موبایل شما ارسال شده است. کد را در کادر روبه‌رو وارد کنید.</p>
+                <ul class="otp-perks">
+                    <li><i class="lni lni-checkmark-circle" aria-hidden="true"></i> کد فقط تا زمان مشخص معتبر است</li>
+                    <li><i class="lni lni-checkmark-circle" aria-hidden="true"></i> کد نرسید؟ بعد از پایان زمان دوباره بفرستید</li>
+                </ul>
+            </aside>
 
-        <p>
-            زمان باقی مانده تا انقضای کد:
-            <span id="timer"></span>
-        </p>
+            <!-- Form panel -->
+            <div class="otp-main">
 
-        <button type="submit">تایید</button>
+                <!-- Title -->
+                <div class="otp-progress" aria-hidden="true">
+                    <span class="is-active"></span>
+                    <span class="is-active"></span>
+                </div>
+                <p class="otp-step-text">مرحله ۲ از ۲: کد تأیید</p>
 
-        <button
-            id="resend-btn"
-            type="button"
-            class="resend_btn"
-            data-codeRequest="code">
-            ارسال مجدد کد
-        </button>
+                <h1>تأیید شماره موبایل</h1>
+                <p class="otp-lead">کد تأییدی که برای شماره موبایل شما ارسال شده است را وارد کنید.</p>
 
-    </form>
+                <!-- OTP Form -->
+                <form method="post" id="otp-form" novalidate>
+                    {% csrf_token %}
+
+                    <label class="otp-label" for="otp">کد تأیید</label>
+                    <div class="otp-code">
+                        <input
+                            type="text"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            name="otp"
+                            id="otp"
+                            placeholder="کد تأیید ۶ رقمی را وارد کنید"
+                            maxlength="6"
+                            dir="ltr"
+                            autocomplete="one-time-code"
+                            autofocus
+                            required
+                            aria-describedby="otp-hint"
+                        >
+                    </div>
+                    <p class="otp-hint" id="otp-hint">کد ۶ رقمی پیامک‌شده را بدون فاصله وارد کنید.</p>
+
+                    <!-- Verify Button -->
+                    <button type="submit" class="otp-submit" id="otp-submit">
+                        <span>تأیید</span>
+                        <i class="lni lni-arrow-left" aria-hidden="true"></i>
+                    </button>
+                </form>
+
+                <!-- Error / Message -->
+                {% if message %}
+                    <div class="otp-alert" role="alert">{{ message }}</div>
+                {% endif %}
+
+                <!-- Timer + Resend -->
+                <div class="otp-meta">
+                    <p class="otp-timer">
+                        زمان باقی‌مانده تا انقضای کد:
+                        <span id="timer" aria-live="off"></span>
+                    </p>
+
+                    <button
+                        id="resend-btn"
+                        type="button"
+                        class="otp-resend"
+                        data-codeRequest="code">
+                        ارسال مجدد کد
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End Verification Area -->
 
 
-
+<!-- ===== Original logic (unchanged) ===== -->
 <script>
 
 const timerElement = document.getElementById("timer");
 const resendButton = document.getElementById("resend-btn");
+
 let interval = null;
 
-function startTimer(seconds){
+
+function startTimer(seconds) {
+
     clearInterval(interval);
+
     let remaining = seconds;
+
     resendButton.disabled = true;
+
     updateTimer();
 
-    interval = setInterval(function(){
+
+    interval = setInterval(function () {
+
         remaining--;
+
         updateTimer();
 
-        if(remaining <= 0){
-            clearInterval(interval);
-            timerElement.innerHTML = "کد منقضی شد";
-            resendButton.disabled = false;
-        }
-    },1000);
 
-    function updateTimer(){
+        if (remaining <= 0) {
+
+            clearInterval(interval);
+
+            timerElement.innerHTML = "کد منقضی شد";
+
+            resendButton.disabled = false;
+
+        }
+
+    }, 1000);
+
+
+    function updateTimer() {
+
         let minutes = Math.floor(remaining / 60);
+
         let secs = remaining % 60;
+
         timerElement.innerHTML =
-            `${minutes}:${secs.toString().padStart(2,"0")}`;
+            `${minutes}:${secs.toString().padStart(2, "0")}`;
+
     }
 }
 
+
 const ttl = Number("{{ ttl|default:0 }}");
 
-if(ttl > 0){
+
+if (ttl > 0) {
+
     startTimer(ttl);
-}else{
+
+} else {
+
     resendButton.disabled = false;
+
     timerElement.innerHTML = "00:00";
+
 }
 
 
 
-$(document).on("click","#resend-btn",function(e){
+$(document).on("click", "#resend-btn", function(e) {
+
     e.preventDefault();
+
     const btn = $(this);
-    btn.prop("disabled",true);
+
+    btn.prop("disabled", true);
+
+
     $.ajax({
-        type:"POST",
-        url:"{% url 'account:verify_otp' %}",
-        data:{
-            code_request:"code",
-            csrfmiddlewaretoken:"{{ csrf_token }}",
-            action:"post"
+
+        type: "POST",
+
+        url: "{% url 'account:verify_otp' %}",
+
+        data: {
+
+            code_request: "code",
+
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+
+            action: "post"
+
         },
-        success:function(response){
+
+        success: function(response) {
+
             startTimer(120);
+
         },
-        error:function(){
-            btn.prop("disabled",false);
+
+        error: function() {
+
+            btn.prop("disabled", false);
+
             alert("ارسال کد با خطا مواجه شد.");
+
         }
+
     });
+
 });
 
+</script>
+
+<!-- ===== UI-only helpers (separate from the logic above) ===== -->
+<script>
+    (function () {
+        var form = document.getElementById('otp-form');
+        var input = document.getElementById('otp');
+        var btn = document.getElementById('otp-submit');
+        var label = btn.querySelector('span');
+        var idleText = label.textContent;
+
+        
+        function normalize(str) {
+            return str
+                .replace(/[۰-۹]/g, function (d) { return d.charCodeAt(0) - 1776; })
+                .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; })
+                .replace(/\D/g, '');
+        }
+
+        input.addEventListener('input', function () {
+            var fixed = normalize(input.value).slice(0, 6);
+            if (fixed !== input.value) input.value = fixed;
+        });
+
+
+        form.addEventListener('submit', function () {
+            input.value = normalize(input.value);
+            btn.disabled = true;
+            label.textContent = 'در حال بررسی…';
+        });
+
+        
+        window.addEventListener('pageshow', function () {
+            btn.disabled = false;
+            label.textContent = idleText;
+        });
+    })();
 </script>
 
 {% endblock content %}

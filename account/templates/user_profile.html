@@ -1,16 +1,74 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
-    <img src="{{ profile.avatar.url }}" height="200px" width="200px"/>
-    <br>
-    نام کاربری :{{ profile.user.username }}
-    <br>
-    شهر :{{ profile.city }}
-    <br>
-    <a href="{% url 'account:user_listings' %}">آگهی های من</a>
-    <br>
-    <a href="{% url 'account:edit_profile' %}">ویرایش پروفایل<a>
-    <br>
-    <a href="{% url 'account:logout' %}">خروج از حساب کاربری</a>
+
+
+
+<section class="profile-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="profile-card">
+
+            <!-- Identity -->
+            <div class="profile-head">
+                {% if profile.avatar %}
+                    <img class="profile-avatar" src="{{ profile.avatar.url }}" width="120" height="120"
+                         alt="تصویر پروفایل {{ profile.user.username }}">
+                {% else %}
+                    <div class="profile-avatar profile-avatar--empty" aria-hidden="true">
+                        <i class="lni lni-user"></i>
+                    </div>
+                {% endif %}
+
+                <h1 class="profile-name">
+                    <span class="visually-hidden">نام کاربری:</span>
+                    {{ profile.user.username }}
+                </h1>
+
+                <p class="profile-city">
+                    <i class="lni lni-map-marker" aria-hidden="true"></i>
+                    <span class="visually-hidden">شهر:</span>
+                    {{ profile.city|default:"شهر ثبت نشده" }}
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <nav aria-label="حساب کاربری">
+                <ul class="profile-actions">
+                    <li>
+                        <a class="profile-link" href="{% url 'account:user_listings' %}">
+                            <span class="icon" aria-hidden="true"><i class="lni lni-list"></i></span>
+                            <span class="label">آگهی‌های من</span>
+                            <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="profile-link" href="{% url 'account:user_bookmarks' %}">
+                            <span class="icon" aria-hidden="true"><i class="lni lni-bookmark"></i></span>
+                            <span class="label">آگهی های نشان شده</span>
+                            <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="profile-link" href="{% url 'account:edit_profile' %}">
+                            <span class="icon" aria-hidden="true"><i class="lni lni-pencil"></i></span>
+                            <span class="label">ویرایش پروفایل</span>
+                            <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    
+                    <li class="is-logout">
+                        <a class="profile-link profile-link--danger" href="{% url 'account:logout' %}">
+                            <span class="icon" aria-hidden="true"><i class="lni lni-exit"></i></span>
+                            <span class="label">خروج از حساب کاربری</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</section>
 
 {% endblock content %}

@@ -1,27 +1,66 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
 
-    {% if listings %}
+<link rel="stylesheet" href="{% static 'css/listings.css' %}">
 
-        {% for listing in listings %}
+<section class="listings-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="listings-card">
 
-            <li>
+            <!-- Header -->
+            <header class="listings-head">
+                <div>
+                    <h1>آگهی‌های من</h1>
+                    {% if listings %}
+                        <p class="listings-count">{{ listings|length }} آگهی ثبت‌شده</p>
+                    {% else %}
+                        <p class="listings-count">شما آگهی ثبت شده ندارید</p>
+                    {% endif %}
+                </div>
 
-                <a href="{% url 'listing:detail_page' listing.id %}">{{listing.title}}</a>
                 
+                <a class="listings-add" href="{% url 'listing:create_listing' %}">
+                    <i class="lni lni-plus" aria-hidden="true"></i>
+                     ثبت آگهی جدید
+                </a>
+                
+            </header>
 
-            </li>
-            
-        {% endfor %}
+            {% if listings %}
 
-    {% else %}
-        
-        <center><h3>شما آگهی ثبت شده ندارید</h3></center>
+                <!-- Listings -->
+                <ul class="listings-list">
+                    {% for listing in listings %}
+                        <li>
+                            <a class="listings-item" href="{% url 'listing:detail_page' listing.id %}">
+                                <span class="icon" aria-hidden="true"><i class="lni lni-tag"></i></span>
+                                <span class="title">{{ listing.title }}</span>
+                                <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
 
-    {% endif %}
+            {% else %}
 
-    <a href="{% url 'listing:create_listing' %}">ثبت آگهی جدید</a>
+                <!-- Empty state -->
+                <div class="listings-empty">
+                    <div class="icon" aria-hidden="true"><i class="lni lni-layers"></i></div>
+                    <h2>شما آگهی ثبت شده ندارید</h2>
+                    <p>اولین آگهی خود را ثبت کنید تا برای خریداران نمایش داده شود.</p>
+                    <a class="listings-add" href="{% url 'listing:create_listing' %}">
+                        <i class="lni lni-plus" aria-hidden="true"></i>
+                        ثبت آگهی جدید
+                    </a>
+                </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+</section>
 
 {% endblock content %}
-

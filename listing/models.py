@@ -3,8 +3,12 @@ from account.models import User
 from location.models import City
 
 # Create your models here.
+def category_icon_path(instance, filename):
+    return f"categories/{instance.name}/{filename}"
+
 class Category(models.Model):
     name = models.CharField(max_length=50)
+    icon = models.FileField(upload_to=category_icon_path, null=True)
     
     class Meta:
         verbose_name="category"
@@ -20,11 +24,14 @@ class Listing(models.Model):
     title = models.CharField(max_length=50)
     description = models.TextField()
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="seller")
-    price = models.DecimalField(max_digits=9, decimal_places=3)
+    price = models.DecimalField(max_digits=9, decimal_places=0)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="listings")
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, related_name="listings", null=True)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, related_name="listings")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
+    
+    class Meta:
+        ordering = ["-created_at"]
     
     def __str__(self):
         return f"{self.title} - {self.seller}" 

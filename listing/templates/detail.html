@@ -1,46 +1,92 @@
 {% extends "base.html" %}
 
+{% load static %}
 
 {% block content %}
 
 
-    {% for image in images %}
+<section class="detail-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="detail-card">
 
-        <img src="{{ image.image.url }}" width="200px" height="200px"/>
+            <!-- Gallery -->
+            <div class="detail-gallery">
+                <div class="detail-main">
+                    {% if images %}
+                        <img id="detail-main-img" src="{{ images.0.image.url }}" alt="{{ listing.title }}">
+                    {% else %}
+                        <div class="detail-noimage" aria-hidden="true">
+                            <i class="fa-regular fa-image"></i>
+                        </div>
+                    {% endif %}
+                </div>
 
-    {% endfor %}
-
-    <hr><br>
-
-        {{ listing.title }}
-        <br><br>
-        {{ listing.description }}
-        <br><br>
-
-        {% if is_seller %}
-            <button>
-                <a href="{% url 'listing:update_listing' listing.id %}">ویرایش آگهی</a>
-            </button>
-            <form method="post" action="{% url 'listing:delete_listing' listing.id %}" 
-                style="display:inline;" onsubmit="return confirm('آیا از حذف این آگهی اطمینان دارید؟')">
-
-                {% csrf_token %}
-                <button class="btn btn-danger">حذف آگهی</button>
-            </form>
-        {% else %}
-            <button type="button" class="bookmark-btn" data-index="{{ listing.id }}" style="fontsize:22px;">
-                {% if is_bookmarked %}
-                    <i class="fa-solid fa-bookmark"></i>
-                {% else %}
-                    <i class="fa-regular fa-bookmark"></i>
+                {% if images|length > 1 %}
+                    <div class="detail-thumbs">
+                        {% for image in images %}
+                            <button type="button" class="detail-thumb{% if forloop.first %} is-active{% endif %}"
+                                    data-src="{{ image.image.url }}" aria-label="نمایش تصویر {{ forloop.counter }}">
+                                <img src="{{ image.image.url }}" alt="">
+                            </button>
+                        {% endfor %}
+                    </div>
                 {% endif %}
-            </button>
-            <button type="button">
-                <a href="{% url 'chat:start_chat' listing.seller.username listing.id %}">گفتگو با فروشنده</a>
-            </button>
-        {% endif %}
+            </div>
+
+            <!-- Info -->
+            <div class="detail-info">
+                <h1 class="detail-title">{{ listing.title }}</h1>
+
+                <p class="detail-seller">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    فروشنده: {{ listing.seller.username }}
+                </p>
+
+                <div class="detail-description">
+                    {{ listing.description|linebreaksbr }}
+                </div>
+
+                <!-- Actions -->
+                <div class="detail-actions">
+                    {% if is_seller %}
+                        <a class="detail-btn detail-btn--primary" href="{% url 'listing:update_listing' listing.id %}">
+                            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                            ویرایش آگهی
+                        </a>
+                        <form method="post" action="{% url 'listing:delete_listing' listing.id %}"
+                              class="detail-delete"
+                              onsubmit="return confirm('آیا از حذف این آگهی اطمینان دارید؟')">
+
+                            {% csrf_token %}
+                            <button type="submit" class="detail-btn detail-btn--danger">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                حذف آگهی
+                            </button>
+                        </form>
+                    {% else %}
+                        <a class="detail-btn detail-btn--primary detail-btn--grow"
+                           href="{% url 'chat:start_chat' listing.seller.username listing.id %}">
+                            <i class="fa-regular fa-comments" aria-hidden="true"></i>
+                            گفتگو با فروشنده
+                        </a>
+                        <button type="button" class="bookmark-btn" data-index="{{ listing.id }}"
+                                aria-label="نشان کردن آگهی" title="نشان کردن آگهی">
+                            {% if is_bookmarked %}
+                                <i class="fa-solid fa-bookmark"></i>
+                            {% else %}
+                                <i class="fa-regular fa-bookmark"></i>
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
 
 
+<!-- ===== Original logic (unchanged) ===== -->
 <script>
     let deletedImages = [];
 
@@ -77,6 +123,21 @@
 
 </script>
 
+<!-- ===== UI-only helper: click a thumbnail to show it in the main image ===== -->
+<script>
+    (function () {
+        var main = document.getElementById('detail-main-img');
+        var thumbs = document.querySelectorAll('.detail-thumb');
+        if (!main || !thumbs.length) return;
+
+        thumbs.forEach(function (thumb) {
+            thumb.addEventListener('click', function () {
+                main.src = thumb.getAttribute('data-src');
+                thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+                thumb.classList.add('is-active');
+            });
+        });
+    })();
+</script>
+
 {% endblock content %}
-
-

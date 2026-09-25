@@ -1,32 +1,61 @@
 {% extends "base.html" %}
 
+{% load static %}
 
 {% block content %}
 
-    {% if conversations %}
+<!-- Same row/card layout as user_listings.html and user_bookmarks.html, so it reuses account.css -->
+<link rel="stylesheet" href="{% static 'css/account.css' %}">
 
-        {% for conversation in conversations %}
+<section class="listings-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="listings-card">
 
-            <a href="{% url 'chat:conversation' conversation.id %}">
+            <!-- Header -->
+            <header class="listings-head">
+                <div>
+                    <h1>گفتگوها</h1>
+                    {% if conversations %}
+                        <p class="listings-count">{{ conversations|length }} گفتگو</p>
+                    {% endif %}
+                </div>
+            </header>
 
-                {% if request.user == conversation.seller %}
+            {% if conversations %}
 
-                    {{ conversation.customer.username }} - {{ conversation.listing.title }}
+                <!-- Conversations -->
+                <ul class="listings-list">
+                    {% for conversation in conversations %}
+                        <li>
+                            <a class="listings-item" href="{% url 'chat:conversation' conversation.id %}">
+                                <span class="icon" aria-hidden="true"><i class="lni lni-comments"></i></span>
+                                <span class="title">
+                                    {% if request.user == conversation.seller %}
+                                        <span class="line-main">{{ conversation.customer.username }}</span>
+                                    {% else %}
+                                        <span class="line-main">{{ conversation.seller.username }}</span>
+                                    {% endif %}
+                                    <span class="line-sub">{{ conversation.listing.title }}</span>
+                                </span>
+                                <i class="lni lni-chevron-left chevron" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
 
-                {% else %}
+            {% else %}
 
-                    {{ conversation.seller.username }} - {{ conversation.listing.title }}
+                <!-- Empty state -->
+                <div class="listings-empty">
+                    <div class="icon" aria-hidden="true"><i class="lni lni-comments"></i></div>
+                    <h2>هنوز گفتگویی ندارید</h2>
+                    <p>وقتی با خریدار یا فروشنده‌ای گفتگو را شروع کنید، اینجا نمایش داده می‌شود.</p>
+                </div>
 
-                {% endif %}
-                
-            </a>
-            <br>
-        {% endfor %}
+            {% endif %}
 
-    {% else %}
-
-            <center><h3>هنوز گفتگویی ندارید</h3></center>
-
-    {% endif %}
+        </div>
+    </div>
+</section>
 
 {% endblock %}
