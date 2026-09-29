@@ -1,0 +1,72 @@
+<div class="single-head">
+    <div class="row">
+        {% for listing in listings %}
+            {% with first_image=listing.image.first %}
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="single-grid wow fadeInUp">
+                        <div class="image">
+                            <a href="{% url 'listing:detail_page' listing.id %}" class="thumbnail">
+
+                                {% if first_image %}
+                                    <img src="{{ first_image.image.url }}" alt="{{ listing.title }}">
+                                {% endif %}
+
+                            </a>
+                            <div class="author">
+                                <div class="author-image">
+                                    <a href="javascript:void(0)">
+                                        <img src="{{ listing.seller.profile.avatar.url }}" alt="#">
+                                        <span>{{ listing.seller.username }}</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="top-content">
+                                <a href="javascript:void(0)" class="tag">
+                                    {{ listing.category }}
+                                </a>
+                                <h3 class="title">
+                                    <a href="{% url 'listing:detail_page' listing.id %}">
+                                        {{ listing.title }}
+                                    </a>
+                                </h3>
+                                <p class="update-time">
+                                    آخرین به روز رسانی : {{ listing.updated_at }}
+                                </p>
+                                <ul class="info-list">
+                                    <li>
+                                        <a href="javascript:void(0)">
+                                            <i class="lni lni-map-marker"></i>
+                                            {{ listing.city }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0)">
+                                            <i class="lni lni-timer"></i>
+                                            {{ listing.created_at }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bottom-content">
+                                <p class="price">
+                                    قیمت : <span>{{ listing.price }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+
+{% if listings.has_next %}
+    <div
+        hx-get="?page={{ listings.next_page_number }}"
+        hx-trigger="revealed"
+        hx-swap="outerHTML">
+        در حال بارگذاری ...
+    </div>
+{% endif %}

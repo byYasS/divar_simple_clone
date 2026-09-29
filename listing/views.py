@@ -5,6 +5,7 @@ from location.models import Province, City
 from account.decorators import register_required
 from django.db import transaction
 from .forms import ListingForm
+from django.core.paginator import Paginator
 import json
 
 
@@ -26,27 +27,34 @@ def validate_images(images):
     
     
 
-        
-        
 def listing_page(request):
     user_city = request.user.profile.city
-    listings =  Listing.objects.filter(city__name=user_city.name if user_city else "تهران").select_related("seller", "category")
-    
-    if listings: 
-        for listing in listings:
-            first_image = ListingImage.objects.filter(listing=listing)[0]
-    else:
-        first_image = None
-        
+
+    listings = (
+        Listing.objects.filter(
+            city__name=user_city.name if user_city else "تهران"
+        )
+        .select_related("seller", "category", "city")
+        .prefetch_related("image")
+    )
+
     categories = Category.objects.all()
-  
-    return render(request, "list.html", {"listings":listings, "first_image":first_image, "categories":categories})
+
+    page = request.GET.get("page")
+
+    paginator = Paginator(listings, 12)
+    listings = paginator.get_page(page)
+
+    if request.htmx:
+        return render(request, "includes/partials.html", {"listings": listings})
+
+    return render(request, "list.html", {"listings": listings, "categories": categories,})
 
 
 
 @register_required
 def listing_detail(request, id):
-    listing = Listing.objects.get(id=id)
+    listing = get_object_or_404(Listing, id=id)
     images = ListingImage.objects.filter(listing=listing)
     
     if listing.seller == request.user:
