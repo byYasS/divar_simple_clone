@@ -16,39 +16,61 @@
                         </div>
 
                         <!-- Start Search Form -->
-                            <form method="GET" dir="rtl" action="{% url 'listing:search' %}">
+                        <form method="GET" dir="rtl" action="{% url 'listing:search' %}">
 
-                                <div class="search-form wow fadeInUp" data-wow-delay=".7s">
+                            <div class="search-form wow fadeInUp" data-wow-delay=".7s">
 
-                                    <div class="row justify-content-center">
+                                <div class="row justify-content-center">
 
-                                        <div class="col-lg-6 col-md-7 col-12 p-0">
-                                            <div class="search-input">
-                                                <label for="keyword">
-                                                    <i class="lni lni-search-alt theme-color"></i>
-                                                </label>
+                                <!-- City box: icon + city name (plain text) + a separate small button to change it -->
+                                <div class="col-lg-2 col-md-3 col-12 p-0 city-search-col">
+                                    <div class="city-selector">
 
-                                                <input
-                                                    type="text"
-                                                    name="keyword"
-                                                    id="keyword"
-                                                    placeholder="نام آگهی مورد نظرتان را وارد کنید">
-                                            </div>
+                                        <i class="lni lni-map-marker city-icon"></i>
+
+                                        <div class="city-info">
+                                        <span class="city-label">شهر</span>
+
+                                        <span class="city-name">
+                                            {{ current_city_name }}
+                                        </span>
                                         </div>
 
-                                        <div class="col-lg-2 col-md-3 col-12 p-0">
-                                            <div class="search-btn button">
-                                                <button class="btn" type="submit">
-                                                    <i class="lni lni-search-alt"></i>
-                                                    جستجو
-                                                </button>
-                                            </div>
-                                        </div>
+                                    <a href="{% url 'location:set_city' %}" class="change-city">
+                                     تغییر شهر
+                                    </a>
 
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 col-md-4 col-12 p-0">
+                                <div class="search-input">
+                                    <label for="keyword">
+                                        <i class="lni lni-search-alt theme-color"></i>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="keyword"
+                                        id="keyword"
+                                        placeholder="نام آگهی مورد نظرتان را وارد کنید">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-2 col-md-3 col-12 p-0">
+                                <div class="search-btn button">
+                                    <button class="btn" type="submit">
+                                    <i class="lni lni-search-alt"></i>
+                                     جستجو
+                                    </button>
                                     </div>
                                 </div>
 
-                            </form>
+                            </div>
+                        </div>
+
+                    </form>
+                    <!-- End Search Form -->
 
                     </div>
                 </div>
@@ -65,14 +87,13 @@
                     <div class="col-12 p-0">
                         <div class="category-slider">
                             <!-- Start Single Category -->
-                            
                             {% for category in categories %}
-                                <a href="category.html" class="single-cat">
+                                <a href="{% url 'listing:category' category.id %}" class="single-cat {% if category.id == selected_category.id %}active{% endif %}">
                                     <div class="icon">
                                         <img src="{{ category.icon.url }}" alt="#">
                                     </div>
                                     <h3>{{ category.name }}</h3>
-                                    <h5 class="total">{{ category.listings.count }}</h5>
+                                    <h5 class="total">{% if listings %}{{ category.listings.count }}{% else %}0{% endif %}</h5>
                                 </a>
                             {% endfor %}
                             <!-- End Single Category -->

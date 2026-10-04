@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+
+<section class="select-city-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="select-city-card">
+
+            <div class="select-city-icon" aria-hidden="true">
+                <i class="lni lni-map-marker"></i>
+            </div>
+
+            <h1>{% if selected_city %}تغییر شهر{% else %}شهر خود را انتخاب کنید{% endif %}</h1>
+
+            <p>
+                {% if selected_city %}
+                    شهر فعلی شما <strong>{{ selected_city.name }}</strong> است. می‌توانید شهر دیگری از همین استان، یا استان دیگری، انتخاب کنید.
+                {% else %}
+                    برای دیدن آگهی‌های نزدیک به خودتان، ابتدا استان و سپس شهر خود را انتخاب کنید.
+                {% endif %}
+            </p>
+
+            <form method="post" class="select-city-form" id="select-city-form">
+                {% csrf_token %}
+                <div class="select-city-field">
+                    <label for="province">استان</label>
+                    <select id="province" required>
+                        <option value="" {% if not selected_city %}selected{% endif %} disabled>انتخاب استان</option>
+                        {% for province in provinces %}
+                            <option value="{{ province.id }}"
+                                    {% if selected_city and selected_city.province_id == province.id %}selected{% endif %}>
+                                {{ province.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="select-city-field">
+                    <label for="city">شهر</label>
+                    <select id="city" name="city_id" required {% if not selected_city %}disabled{% endif %}>
+                        <option value="" disabled>
+                            {% if selected_city %}شهر دیگری انتخاب کنید{% else %}ابتدا استان را انتخاب کنید{% endif %}
+                        </option>
+                        {% for city in cities %}
+                            <option value="{{ city.id }}" data-province="{{ city.province_id }}"
+                                    {% if selected_city and selected_city.id == city.id %}selected{% endif %}>
+                                {{ city.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="select-city-submit" id="select-city-submit"
+                        {% if not selected_city %}disabled{% endif %}>
+                    ثبت شهر
+                </button>
+            </form>
+
+        </div>
+    </div>
+</section>
+
+<script>
+    window.__startProvinceId = "{{ selected_city.province_id|default_if_none:'' }}";
+    window.__startCityId = "{{ selected_city.id|default_if_none:'' }}";
+</script>
+<script>
+    (function () {
+        var provinceSel = document.getElementById('province');
+        var citySel = document.getElementById('city');
+        var submitBtn = document.getElementById('select-city-submit');
+        if (!provinceSel || !citySel || !submitBtn) return;
+
+        var emptyOption = citySel.querySelector('option[value=""]');
+        var allCityOptions = Array.prototype.slice.call(citySel.options)
+            .filter(function (o) { return o.value !== ''; });
+
+        function updateSubmitState() {
+            submitBtn.disabled = provinceSel.value === '' || citySel.value === '';
+        }
+
+        function fill(provinceId, cityIdToKeep) {
+            citySel.innerHTML = '';
+            emptyOption.textContent = provinceId ? 'شهر دیگری انتخاب کنید' : 'ابتدا استان را انتخاب کنید';
+            citySel.appendChild(emptyOption);
+
+            allCityOptions.forEach(function (o) {
+                if (o.getAttribute('data-province') === provinceId) citySel.appendChild(o);
+            });
+
+            citySel.disabled = !provinceId;
+
+            var stillThere = cityIdToKeep && Array.prototype.slice.call(citySel.options)
+                .some(function (o) { return o.value === cityIdToKeep; });
+            citySel.value = stillThere ? cityIdToKeep : '';
+
+            updateSubmitState();
+        }
+
+        if (window.__startCityId) {
+            provinceSel.value = window.__startProvinceId;
+            fill(window.__startProvinceId, window.__startCityId);
+        }
+
+        provinceSel.addEventListener('change', function () {
+            fill(provinceSel.value, null);
+        });
+        citySel.addEventListener('change', updateSubmitState);
+    })();
+</script>
+
+{% endblock content %}

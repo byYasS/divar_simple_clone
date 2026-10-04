@@ -1,7 +1,6 @@
 {% extends "base.html" %}
-
 {% load static %}
-
+{% load price_filters %}
 {% block content %}
 
 
@@ -44,6 +43,10 @@
 
                 <div class="detail-description">
                     {{ listing.description|linebreaksbr }}
+                </div>
+
+                <div class="detail-price">
+                    {{ listing.price|format_price }}
                 </div>
 
                 <!-- Actions -->

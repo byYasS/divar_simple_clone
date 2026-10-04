@@ -1,3 +1,5 @@
+{% load price_filters %}
+
 <div class="single-head">
     <div class="row">
         {% for listing in listings %}
@@ -51,7 +53,7 @@
                             </div>
                             <div class="bottom-content">
                                 <p class="price">
-                                    قیمت : <span>{{ listing.price }}</span>
+                                    قیمت : <span>{{ listing.price|format_price }}</span>
                                 </p>
                             </div>
                         </div>

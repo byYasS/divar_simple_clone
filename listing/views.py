@@ -24,16 +24,31 @@ def validate_images(images):
             errors.append("فرمت تصویر معتبر نیست")
         
     return errors 
+
+
+
+def get_current_city(request):
+    city_id = request.session.get("city_id")
+    if city_id:
+        city = City.objects.filter(id=city_id).first()
+        if city:
+            return city
+        
+    if request.user.is_authenticated:
+        profile = getattr(request.user, "profile", None)
+        if profile and profile.city:
+            request.session["city_id"] = profile.city.id
+            return profile.city
     
+    return get_object_or_404(City, name="تهران")
+
     
 
 def listing_page(request):
-    user_city = request.user.profile.city
-
+    current_city = get_current_city(request) 
+    
     listings = (
-        Listing.objects.filter(
-            city__name=user_city.name if user_city else "تهران"
-        )
+        Listing.objects.filter(city=current_city)
         .select_related("seller", "category", "city")
         .prefetch_related("image")
     )
@@ -47,8 +62,14 @@ def listing_page(request):
 
     if request.htmx:
         return render(request, "includes/partials.html", {"listings": listings})
+    
+    context = {
+        "listings": listings,
+        "categories": categories,
+        "current_city_name":current_city.name
+    }
 
-    return render(request, "list.html", {"listings": listings, "categories": categories,})
+    return render(request, "list.html", context)
 
 
 
@@ -67,27 +88,60 @@ def listing_detail(request, id):
     else:
         is_bookmarked = False        
     
-    return render(request, "detail.html", {"listing":listing, "images":images, "is_seller":is_seller, "is_bookmarked":is_bookmarked})
+    context = {
+        "listing":listing,
+        "images":images,
+        "is_seller":is_seller,
+        "is_bookmarked":is_bookmarked
+    }
+    
+    return render(request, "detail.html", context)
 
 
 
 def search_listing(request):
+    current_city = get_current_city(request)
+    
     if request.method == "GET":
         keyword = request.GET.get("keyword")
-        listings = Listing.objects.filter(title__icontains=keyword)
-        if listings:
-            for listing in listings:
-                first_image = ListingImage.objects.filter(listing=listing)[0]
-                categories = Category.objects.filter(listings=listing)
-        else:
-            first_image = None
-            categories = None
-            
+        listings = (
+            Listing.objects.filter(title__icontains=keyword, city=current_city)
+            .select_related("category")
+            .prefetch_related("image")
+        )
+        
+    categories = Category.objects.all()   
     search_mode = True
-            
-    return render(request, "list.html", {"listings":listings, "first_image":first_image, "categories":categories, "search_mode":search_mode})
+    
+    
+    context = {
+        "listings":listings,
+        "categories":categories,
+        "search_mode":search_mode,
+        "current_city_name":current_city.name
+    } 
+    
+    return render(request, "list.html", context)
 
 
+
+def category(request, category_id):
+    current_city = get_current_city(request)
+    selected_category = get_object_or_404(Category, id=category_id)
+    listings = Listing.objects.filter(category=category_id, city=current_city)
+    categories = Category.objects.all()
+    
+    
+    context = {
+        "listings":listings,
+        "categories":categories,
+        "selected_category":selected_category,
+        "current_city_name":current_city.name
+    }
+    
+    return render(request, "list.html", context)
+    
+    
 
 @register_required
 @transaction.atomic
