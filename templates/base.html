@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/accounts.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/listings.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/chat.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/notifications.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/location.css' %}" />
 
 </head>
@@ -50,7 +51,7 @@
         your experience and security.
       </p>
     <![endif]-->
-
+    {% include 'notifications.html' %}
     <!-- Preloader -->
     <div class="preloader">
         <div class="preloader-inner">

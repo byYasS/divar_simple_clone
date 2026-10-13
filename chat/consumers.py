@@ -1,8 +1,28 @@
 from channels.generic.websocket import WebsocketConsumer
-from asgiref.sync import async_to_sync
 from chat.models import ListingConversation, ListingMessage
+from django.core.files.base import ContentFile
+from asgiref.sync import async_to_sync
 from django.db.models import Q
+from uuid import uuid4
+from io import BytesIO
+from PIL import Image
+import struct
 import json
+
+
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
+ALLOWED_FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp", "GIF": "gif"}
+
+
+def time_format(time):
+    return time.isoformat()[11:16]
+
+
+def user_is_allowed(user):
+    if ListingConversation.objects.filter(Q(seller=user) | Q(customer=user)).exists():
+        return True
+    else:
+        return False
 
 
 class ConversationConsumer(WebsocketConsumer):
@@ -15,11 +35,12 @@ class ConversationConsumer(WebsocketConsumer):
         conversation = ListingConversation.objects.get(id=conversation_id)
         created_message = ListingMessage.objects.create(sender=user, conversation=conversation, content=message)
         
+        self.notification(created_message)
             
         message_data = {
             "sender_name":created_message.sender.username,
             "message":message,
-            "sended_at":created_message.sended_at.isoformat()[11:16],
+            "sended_at":time_format(created_message.sended_at)
         }
         
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, {
@@ -28,7 +49,6 @@ class ConversationConsumer(WebsocketConsumer):
             "message_data":message_data,
         })
         
-
 
     def get_messages_history(self, data):
         conversation_id = data["conversation_id"]
@@ -44,14 +64,70 @@ class ConversationConsumer(WebsocketConsumer):
             messages_data.append({
                 "sender_name":old_message.sender.username,
                 "message":old_message.content,
-                "sended_at":old_message.sended_at.isoformat()[11:16],
+                "image_url": old_message.image.url if old_message.image else None,
+                "sended_at":time_format(old_message.sended_at)
             })
             
             
         self.chat_message(messages_data)
         
     
+    def handle_image(self, bytes_data):
     
+        try:
+            header_len = struct.unpack(">I", bytes_data[:4])[0]
+            header = json.loads(bytes_data[4:4 + header_len])
+            image_bytes = bytes_data[4 + header_len:]
+        except (struct.error, ValueError):
+            return self.send_error("پیام نامعتبر است.")
+
+        if header.get("request") != "send_image":
+            return self.send_error("درخواست نامعتبر است.")
+
+ 
+        if not image_bytes or len(image_bytes) > MAX_IMAGE_SIZE:
+            return self.send_error("حجم تصویر نامعتبر است (حداکثر ۵ مگابایت).")
+
+
+        try:
+            img = Image.open(BytesIO(image_bytes))
+            img.verify()
+            ext = ALLOWED_FORMATS.get(img.format)
+        except Exception:
+            ext = None
+
+        if ext is None:
+            return self.send_error("فقط تصاویر JPG، PNG، WEBP و GIF مجاز هستند.")
+
+        caption = str(header.get("message", ""))[:1000]
+        conversation = ListingConversation.objects.get(id=header.get("conversation_id"))
+        user = self.scope["user"]
+
+        msg = ListingMessage(conversation=conversation, sender=user, content=caption if caption else None)
+        msg.image.save(f"{uuid4().hex}.{ext}", ContentFile(image_bytes), save=True)
+
+        message_data = {
+            "sender_name": user.username,
+            "message": msg.content,
+            "image_url": msg.image.url,
+            "sended_at": time_format(msg.sended_at)
+        }
+
+        
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,        
+            {"type": "chat_message",
+            "response":"send_new_message",  
+            "message_data": message_data},
+        )
+    
+    
+    def send_error(self, text):
+        self.send(text_data=json.dumps(
+            {"event": {"response": "error", "error": text}}
+        ))
+    
+
     def connect(self):
         conversation = self.scope["url_route"]["kwargs"]["conversation_id"]
         
@@ -60,20 +136,21 @@ class ConversationConsumer(WebsocketConsumer):
         
         async_to_sync(self.channel_layer.group_add)(self.room_group_name, self.channel_name)
         
-        
         if user_is_allowed(self.scope["user"]):
             self.accept()
         else:
             self.close()
         
         
-        
-    def disconnect(self):
+    def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
     
     
-    
-    def receive(self, text_data = None):
+    def receive(self, text_data = None, bytes_data = None):
+        if bytes_data:
+            self.handle_image(bytes_data)
+            return
+        
         json_text_data = json.loads(text_data)
         
         if json_text_data["request"] == "send_new_message":
@@ -83,6 +160,28 @@ class ConversationConsumer(WebsocketConsumer):
             self.get_messages_history(json_text_data)
         
         
+    def notification(self, new_message):
+        conversation = new_message.conversation
+        sender = new_message.sender
+      
+        if sender.id == conversation.seller_id:
+            recipient = conversation.customer
+        else:
+            recipient = conversation.seller
+    
+        notification_data = {
+            "conversation_id": conversation.id,
+            "sender_name": sender.username,
+            "listing_title": conversation.listing.title,
+            "message": new_message.content or new_message.image.url,
+            "sended_at": time_format(new_message.sended_at)
+        }
+        
+        async_to_sync(self.channel_layer.group_send)(f"user_{recipient.id}", {
+            "type": "notification_message",
+            "notification_data": notification_data,
+        })    
+        
         
     def chat_message(self, event):
         self.send(text_data=json.dumps({
@@ -90,15 +189,39 @@ class ConversationConsumer(WebsocketConsumer):
             "user_id":self.scope["user"].id,
         }))
         
+          
         
+class NotificationConsumer(WebsocketConsumer):
+
+    def connect(self):
+        user = self.scope["user"]
+        self.group_name = None
+
+        if not user.is_authenticated:
+            self.close()
+            return
+
+        self.group_name = f"user_{user.id}"
+        async_to_sync(self.channel_layer.group_add)(
+            self.group_name, self.channel_name
+        )
+        self.accept()
+
+    def disconnect(self, close_code):
+        if getattr(self, "group_name", None):
+            async_to_sync(self.channel_layer.group_discard)(
+                self.group_name, self.channel_name
+            )
+
+    def notification_message(self, event):
+        self.send(text_data=json.dumps({
+            "event": {
+                "response": "new_notification",
+                "notification_data": event["notification_data"],
+            }
+        })) 
         
-        
-        
-def user_is_allowed(user):
-    if ListingConversation.objects.filter(Q(seller=user) | Q(customer=user)).exists():
-        return True
-    else:
-        return False
+             
     
     
     

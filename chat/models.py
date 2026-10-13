@@ -15,12 +15,15 @@ class ListingConversation(models.Model):
     def __str__(self):
         return f"{self.listing} : {self.seller} - {self.customer}"
     
-    
+ 
+ 
 class ListingMessage(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="message_senders")
     conversation = models.ForeignKey(ListingConversation, on_delete=models.CASCADE, related_name="messages")
-    content = models.CharField(max_length=150)
+    content = models.CharField(max_length=150, null=True, blank=True)
+    image = models.ImageField(upload_to="conversation/%Y/%m/", blank=True, null=True)
     sended_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     
     def __str__(self):
         return f"{self.sender.username} - {self.conversation.listing.title}"
+    

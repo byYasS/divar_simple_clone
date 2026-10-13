@@ -1,0 +1,67 @@
+{% if user.is_authenticated %}
+
+<div id="notif-toasts" class="notif-toasts" dir="rtl" aria-live="polite"></div>
+
+<script>
+(function () {
+    const CONVERSATION_URL_TEMPLATE = "/chat/{id}/";
+    const MAX_TOASTS = 3;
+    const TOAST_DURATION = 6000;
+
+    const box = document.getElementById('notif-toasts');
+    let retryDelay = 1000;
+
+    function showNotification(n) {
+
+        if (window.currentConversationId !== undefined &&
+            String(n.conversation_id) === String(window.currentConversationId)) {
+            return;
+        }
+
+        const toast = document.createElement('a');
+        toast.className = 'notif-toast';
+        toast.href = CONVERSATION_URL_TEMPLATE.replace('{id}', encodeURIComponent(n.conversation_id));
+
+        const title = document.createElement('strong');
+        title.className = 'notif-toast-title';
+        title.textContent = n.sender_name + ' | ' + n.listing_title;
+
+        const body = document.createElement('p');
+        body.className = 'notif-toast-body';
+        body.textContent = n.message;
+
+        toast.appendChild(title);
+        toast.appendChild(body);
+
+        while (box.children.length >= MAX_TOASTS) {
+            box.removeChild(box.firstChild);
+        }
+        box.appendChild(toast);
+        setTimeout(() => toast.remove(), TOAST_DURATION);
+    }
+
+    function connect() {
+        const scheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(scheme + window.location.host + '/ws/notifications/');
+
+        socket.onopen = function () {
+            retryDelay = 1000;
+        };
+
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            if (data.event && data.event.response === 'new_notification') {
+                showNotification(data.event.notification_data);
+            }
+        };
+
+        socket.onclose = function () {
+            setTimeout(connect, retryDelay);
+            retryDelay = Math.min(retryDelay * 2, 30000);
+        };
+    }
+
+    connect();
+})();
+</script>
+{% endif %}

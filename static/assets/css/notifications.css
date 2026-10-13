@@ -1,0 +1,33 @@
+.notif-toasts {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: min(320px, calc(100vw - 2rem));
+}
+.notif-toast {
+    display: block;
+    padding: .75rem 1rem;
+    border-radius: 10px;
+    background: #fff;
+    color: #222;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+    border-right: 4px solid #2f80ed;
+    animation: notif-toast-in .25s ease-out;
+}
+.notif-toast-title { display: block; font-size: .9rem; margin-bottom: .2rem; }
+.notif-toast-body {
+    margin: 0;
+    font-size: .85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@keyframes notif-toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

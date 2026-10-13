@@ -4,8 +4,6 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'css/chat.css' %}">
-
 <section class="chat-page" dir="rtl" lang="fa">
     <div class="container">
         <div class="chat-card">
@@ -16,17 +14,32 @@
                 <h1 id="username" class="chat-title"></h1>
             </header>
 
-            <!-- Message log: was a <textarea id="chat-log">, now a bubble list with the same id -->
+            <!-- Message log -->
             <div id="chat-log" class="chat-log" role="log" aria-live="polite" aria-label="پیام‌ها"></div>
 
-            <!-- Input row: same ids as before (#chat-message-input, #chat-message-submit) -->
+            <!-- Preview of the selected image (hidden until a file is chosen) -->
+            <div id="chat-preview" class="chat-preview">
+                <img id="chat-preview-img" alt="پیش‌نمایش تصویر">
+                <span id="chat-preview-name" class="chat-preview-name"></span>
+                <button id="chat-preview-remove" type="button" class="chat-preview-remove" aria-label="حذف تصویر">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <!-- Input row -->
             <div class="chat-input-row">
                 <button id="chat-message-submit" type="button" class="chat-send" aria-label="ارسال پیام">
                     <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
                 </button>
+
+                <!-- NEW: choose picture button + hidden file input -->
+                <button id="chat-image-button" type="button" class="chat-attach" aria-label="انتخاب تصویر">
+                    <i class="fa-regular fa-image" aria-hidden="true"></i>
+                </button>
+                <input id="chat-image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+
                 <input id="chat-message-input" type="text" class="chat-input"
                        placeholder="پیام خود را بنویسید…" autocomplete="off">
-                
             </div>
 
         </div>
@@ -38,35 +51,73 @@
 <script>
     const conversation_id = JSON.parse(document.getElementById('conversation_id').textContent);
 
+    window.currentConversationId = conversation_id;
+
     const seller_id = "{{ conversation.seller.id }}";
     const seller_name = "{{ conversation.seller.username }}";
     const customer_name = "{{ conversation.customer.username }}";
 
-    
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; 
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
     const chatLog = document.querySelector('#chat-log');
+    const messageInput = document.querySelector('#chat-message-input');
+    const submitButton = document.querySelector('#chat-message-submit');
+    const imageButton = document.querySelector('#chat-image-button');
+    const imageInput = document.querySelector('#chat-image-input');
+    const previewBox = document.querySelector('#chat-preview');
+    const previewImg = document.querySelector('#chat-preview-img');
+    const previewName = document.querySelector('#chat-preview-name');
+    const previewRemove = document.querySelector('#chat-preview-remove');
+
     let myName = null;
+    let selectedFile = null;
+
+    function scrollToBottom() {
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
 
     function appendMessage(messageData) {
         const bubble = document.createElement('div');
         const mine = messageData.sender_name === myName;
         bubble.className = 'chat-bubble ' + (mine ? 'chat-bubble--mine' : 'chat-bubble--theirs');
 
-        const text = document.createElement('p');
-        text.className = 'chat-bubble-text';
-        text.textContent = messageData.message;
+        if (messageData.image_url) {
+            const link = document.createElement('a');
+            link.href = messageData.image_url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+
+            const img = document.createElement('img');
+            img.className = 'chat-bubble-img';
+            img.src = messageData.image_url;
+            img.alt = 'تصویر ارسال‌شده';
+            img.loading = 'lazy';
+            img.addEventListener('load', scrollToBottom);
+
+            link.appendChild(img);
+            bubble.appendChild(link);
+        }
+
+        if (messageData.message) {
+            const text = document.createElement('p');
+            text.className = 'chat-bubble-text';
+            text.textContent = messageData.message;
+            bubble.appendChild(text);
+        }
 
         const time = document.createElement('span');
         time.className = 'chat-bubble-time';
         time.textContent = messageData.sended_at;
-
-        bubble.appendChild(text);
         bubble.appendChild(time);
+
         chatLog.appendChild(bubble);
-        chatLog.scrollTop = chatLog.scrollHeight;
+        scrollToBottom();
     }
 
+    const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const chatSocket = new WebSocket(
-        'ws://'
+        wsScheme
         + window.location.host
         + '/ws/chat/'
         + conversation_id
@@ -74,7 +125,6 @@
     );
 
     chatSocket.onopen = function() {
-
         chatSocket.send(JSON.stringify({
             'request': "get_old_messages",
             'conversation_id': conversation_id,
@@ -83,55 +133,136 @@
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
+
+        if (data.event && data.event.response === "error") {
+            alert(data.event.error);
+            return;
+        }
+
         const name = document.querySelector('#username');
 
-
-        if(seller_id == data.user_id){
+        if (seller_id == data.user_id) {
             name.textContent = customer_name;
             myName = seller_name;
-        }else{
+        } else {
             name.textContent = seller_name;
             myName = customer_name;
-        };
-
+        }
 
         const event = data.event;
 
-        if(event["response"]==="send_new_message"){
-
+        if (event["response"] === "send_new_message") {
             appendMessage(event["message_data"]);
-
-        }else{
-            for(let i=event.length-1 ; i>=0 ; i--){
-
+        } else {
+            for (let i = event.length - 1; i >= 0; i--) {
                 appendMessage(event[i]);
-
             }
         }
-
     };
 
     chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
     };
 
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.key === 'Enter') {  // enter, return
-            document.querySelector('#chat-message-submit').click();
-        }
+    function clearSelectedImage() {
+        if (previewImg.src) URL.revokeObjectURL(previewImg.src);
+        selectedFile = null;
+        imageInput.value = '';
+        previewImg.removeAttribute('src');
+        previewName.textContent = '';
+        previewBox.classList.remove('is-visible');
+    }
+
+    imageButton.onclick = function() {
+        imageInput.click();
     };
 
-    document.querySelector('#chat-message-submit').onclick = function(e) {
-        const messageInputDom = document.querySelector('#chat-message-input');
-        const message = messageInputDom.value;
+    imageInput.onchange = function() {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            alert('فقط تصاویر JPG، PNG، WEBP و GIF مجاز هستند.');
+            clearSelectedImage();
+            return;
+        }
+        if (file.size > MAX_IMAGE_SIZE) {
+            alert('حجم تصویر نباید بیشتر از ۵ مگابایت باشد.');
+            clearSelectedImage();
+            return;
+        }
+
+        if (previewImg.src) URL.revokeObjectURL(previewImg.src);
+        selectedFile = file;
+        previewImg.src = URL.createObjectURL(file);  
+        previewName.textContent = file.name;
+        previewBox.classList.add('is-visible');
+        messageInput.focus();
+    };
+
+    previewRemove.onclick = clearSelectedImage;
+
+
+    async function sendImage(file, caption) {
+        if (chatSocket.readyState !== WebSocket.OPEN) {
+            throw new Error('اتصال برقرار نیست. صفحه را دوباره بارگذاری کنید.');
+        }
+
+        const header = new TextEncoder().encode(JSON.stringify({
+            request: 'send_image',
+            conversation_id: conversation_id,
+            message: caption,
+            content_type: file.type,
+            filename: file.name,
+        }));
+
+        const lengthPrefix = new ArrayBuffer(4);
+        new DataView(lengthPrefix).setUint32(0, header.length); 
+
+        chatSocket.send(new Blob([lengthPrefix, header, file]));
+    }
+
+    function setSending(isSending) {
+        submitButton.disabled = isSending;
+        imageButton.disabled = isSending;
+    }
+
+    async function submitMessage() {
+        const message = messageInput.value.trim();
+
+        if (selectedFile) {
+            setSending(true);
+            try {
+                await sendImage(selectedFile, message);  
+                messageInput.value = '';
+                clearSelectedImage();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                setSending(false);
+            }
+            return;
+        }
+
+        if (!message) return;   
+
         chatSocket.send(JSON.stringify({
             'request': "send_new_message",
             'message': message,
             'conversation_id': conversation_id,
         }));
-        messageInputDom.value = '';
+        messageInput.value = '';
+    }
+
+    messageInput.focus();
+    messageInput.onkeyup = function(e) {
+        if (e.key === 'Enter') {
+            submitButton.click();
+        }
     };
+
+    submitButton.onclick = submitMessage;
+
 </script>
 
 {% endblock content %}

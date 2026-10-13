@@ -196,6 +196,98 @@
     cursor: not-allowed;
 }
 
+/* ---------- icon buttons (attach + remove preview) ---------- */
+.chat-attach,
+.chat-preview-remove {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+/* same size as the send button so the row lines up */
+.chat-attach {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+}
+
+.chat-preview-remove {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+}
+
+.chat-attach i,
+.chat-preview-remove i {
+    line-height: 1;   /* keeps the glyph centered inside the circle */
+}
+
+.chat-attach:hover:not(:disabled),
+.chat-preview-remove:hover {
+    background: rgba(88, 48, 224, .1);
+    color: var(--c-brand);
+}
+
+.chat-attach:focus-visible,
+.chat-preview-remove:focus-visible {
+    outline: 3px solid rgba(88, 48, 224, .35);
+    outline-offset: 2px;
+}
+
+.chat-attach:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* ---------- selected image preview ---------- */
+.chat-preview {
+    display: none;
+    flex: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff;
+    border-top: 1px solid var(--c-line);
+}
+
+.chat-preview.is-visible {
+    display: flex;
+}
+
+.chat-preview img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.chat-preview-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--c-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-bubble-img {
+    display: block;
+    max-width: 240px;
+    max-height: 280px;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: .25rem;
+}
 /* ---------- responsive ---------- */
 @media (max-width: 575.98px) {
     .chat-page {
