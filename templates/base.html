@@ -40,10 +40,12 @@
     <link rel="stylesheet" href="{% static 'assets/css/chat.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/notifications.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/location.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/error-pages.css' %}" />
 
 </head>
 
 <body>
+    
     <!--[if lte IE 9]>
       <p class="browserupgrade">
         You are using an <strong>outdated</strong> browser. Please
@@ -52,6 +54,7 @@
       </p>
     <![endif]-->
     {% include 'notifications.html' %}
+    {% include 'presence.html' %}
     <!-- Preloader -->
     <div class="preloader">
         <div class="preloader-inner">
@@ -64,13 +67,13 @@
     <!-- /End Preloader -->
 
     <!-- Start Header Area -->
-    <header class="header navbar-area">
+    <header class="header navbar-area" dir="rtl">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-12">
                     <div class="nav-inner">
                         <nav class="navbar navbar-expand-lg">
-                            <a class="navbar-brand" href="index.html">
+                            <a class="navbar-brand" href="{% url 'listing:list_page' %}">
                                 <img src="{% static 'assets/images/logo/logo.svg' %}" alt="Logo">
                             </a>
                             <button class="navbar-toggler mobile-menu-btn" type="button" data-bs-toggle="collapse"
@@ -82,20 +85,24 @@
                             </button>
                             <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
                                 <ul id="nav" class="navbar-nav ms-auto">
+                                    {% with page=request.resolver_match.url_name %}
                                     <li class="nav-item">
-                                        <a class=" active dd-menu collapsed" href="{% url 'listing:list_page' %}"
-                                            
-                                            aria-label="Toggle navigation">صفحه اصلی</a>
-                                        
+                                        <a href="{% url 'listing:list_page' %}"
+                                           {% if page == 'list_page' %}class="active" aria-current="page"{% endif %}>صفحه اصلی</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a href="{% url 'account:user_profile' %}" aria-label="Toggle navigation">حساب کاربری</a>
+                                        <a href="{% url 'account:user_profile' %}"
+                                           {% if page == 'user_profile' %}class="active" aria-current="page"{% endif %}>حساب کاربری</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class=" dd-menu collapsed" href="{% url 'chat:user_conversations' %}"
-                                            
-                                            aria-label="Toggle navigation">گفتگوها</a>
+                                        <a href="{% url 'chat:user_conversations' %}"
+                                           {% if page == 'user_conversations' %}class="active" aria-current="page"{% endif %}>گفتگوها</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a href="{% url 'account:user_bookmarks' %}"
+                                           {% if page == 'user_bookmarks' %}class="active" aria-current="page"{% endif %}>نشان ها</a>
+                                    </li>
+                                    {% endwith %}
                                 </ul>
                             </div> <!-- navbar collapse -->
                             
@@ -150,6 +157,7 @@
     <script src="{% static 'assets/js/wow.min.js' %}"></script>
     <script src="{% static 'assets/js/tiny-slider.js' %}"></script>
     <script src="{% static 'assets/js/glightbox.min.js' %}"></script>
+    <script src="{% static 'assets/js/jalali-dates.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
     <script type="text/javascript">
         //========= Category Slider 
@@ -181,7 +189,9 @@
                 }
             }
         });
+
     </script>
+    
 </body>
 
 

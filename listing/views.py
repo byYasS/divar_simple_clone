@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from .models import Listing, ListingImage, Bookmark, Category
-from location.models import Province, City
-from account.decorators import register_required
+from location.models import City
 from django.db import transaction
 from .forms import ListingForm
 from django.core.paginator import Paginator
@@ -73,7 +72,6 @@ def listing_page(request):
 
 
 
-@register_required
 def listing_detail(request, id):
     listing = get_object_or_404(Listing, id=id)
     images = ListingImage.objects.filter(listing=listing)
@@ -143,7 +141,6 @@ def category(request, category_id):
     
     
 
-@register_required
 @transaction.atomic
 def create_listing(request):
     
@@ -192,8 +189,7 @@ def create_listing(request):
         return render(request, "create_listing.html", {"form":form})
     
  
- 
-@register_required 
+  
 @transaction.atomic    
 def update_listing(request, id):
     
@@ -255,7 +251,6 @@ def update_listing(request, id):
      
   
   
-@register_required    
 def delete_listing(request, id):
     if request.method == "POST":
         listing = get_object_or_404(Listing, id=id, seller=request.user)
@@ -268,11 +263,10 @@ def delete_listing(request, id):
             
         listing.delete()
         
-    return HttpResponse("آگهی شما با موفقیت حذف شد")
+    return render(request, "listing_deleted.html", {"listing_title":listing.title})
 
 
 
-@register_required
 def toggle_bookmark(request, id):
     listing = Listing.objects.get(id=id)
     bookmark = Bookmark.objects.filter(listing=listing, user=request.user).first()

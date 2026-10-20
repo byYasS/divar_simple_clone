@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'assets/css/status-pages.css' %}">
+
+<section class="status-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="status-card">
+
+            <div class="status-icon status-icon--brand" aria-hidden="true">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </div>
+
+            <h1 class="status-title">با موفقیت از حساب کاربری خارج شدید</h1>
+
+            <p class="status-text">
+                امیدواریم به‌زودی دوباره شما را ببینیم.
+                <br>
+                برای ادامه می‌توانید دوباره وارد حساب خود شوید.
+            </p>
+
+            <div class="status-actions">
+                <div class="button">
+                    <a href="{% url 'account:send_otp' %}" class="btn">ورود مجدد</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

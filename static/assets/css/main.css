@@ -1475,6 +1475,9 @@ ol {
 
 .navbar-brand {
   padding: 0;
+  /* RTL: the space between logo and menu is on the logo's left */
+  margin-right: 0;
+  margin-left: 1rem;
 }
 
 .navbar-brand img {
@@ -1554,17 +1557,19 @@ ol {
 
 .navbar-expand-lg .navbar-nav {
   margin: 0;
-  margin-right: auto !important;
+  /* RTL: was margin-right: auto */
+  margin-left: auto !important;
 }
 
 .navbar-nav .nav-item {
   z-index: 1;
   position: relative;
-  margin-right: 40px;
+  /* RTL: was margin-right */
+  margin-left: 40px;
 }
 
 .navbar-nav .nav-item:last-child {
-  margin-right: 0 !important;
+  margin-left: 0 !important;
 }
 
 .navbar-nav .nav-item:hover a {
@@ -1598,7 +1603,8 @@ ol {
 .navbar-nav .nav-item a::before {
   content: '';
   position: absolute;
-  left: 0;
+  /* RTL: was left: 0 */
+  right: 0;
   bottom: 0;
   height: 3px;
   width: 0%;
@@ -1903,13 +1909,40 @@ ol {
 
 .header-button {
   display: inline-block;
-  margin-left: 10px;
+  /* RTL: was margin-left */
+  margin-right: 10px;
 }
 
 .header-button .btn i {
   font-size: 14px;
   display: inline-block;
-  margin-right: 5px;
+  /* RTL: was margin-right */
+  margin-left: 5px;
+}
+
+/* Desktop: menu centered in the header (true page center).
+   Logo and button each take an equal share of the free space (flex: 1 1 0),
+   so the menu in the middle ends up exactly centered no matter how wide
+   the logo or the button are. */
+@media (min-width: 992px) {
+  .header .navbar {
+    column-gap: 1rem;
+  }
+
+  .header .navbar-brand {
+    flex: 1 1 0;
+    margin-left: 0;
+  }
+
+  .header .navbar-collapse {
+    flex-grow: 0;
+  }
+
+  .header .header-button {
+    flex: 1 1 0;
+    margin-right: 0;
+    text-align: left;
+  }
 }
 
 /*======================================

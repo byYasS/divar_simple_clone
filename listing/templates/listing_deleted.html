@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'assets/css/status-pages.css' %}">
+
+<section class="status-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="status-card">
+
+            <div class="status-icon" aria-hidden="true">
+                <i class="fa-solid fa-check"></i>
+            </div>
+
+            <h1 class="status-title">آگهی با موفقیت حذف شد</h1>
+
+            {% if listing_title %}
+            <p class="status-text">
+                آگهی <strong class="status-name">{{ listing_title }}</strong>
+                برای همیشه حذف شد و دیگر در سایت نمایش داده نمی‌شود.
+            </p>
+            {% else %}
+            <p class="status-text">
+                آگهی شما برای همیشه حذف شد و دیگر در سایت نمایش داده نمی‌شود.
+            </p>
+            {% endif %}
+
+            <div class="status-actions">
+                <div class="button">
+                    <a href="{% url 'listing:list_page' %}" class="btn">بازگشت به صفحه اصلی</a>
+                </div>
+                <div class="button">
+                    <a href="{% url 'listing:create_listing' %}" class="btn btn-alt">ثبت آگهی جدید</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

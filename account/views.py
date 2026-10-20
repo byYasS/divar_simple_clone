@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from .models import User, Profile
 from .forms import EditProfileForm
 from listing.models import Listing, Bookmark
-from account.decorators import register_required
 from . import otp
 import re
 
@@ -12,12 +11,15 @@ import re
 # Create your views here.
 def register_or_login(request, phone):
     user = User.objects.filter(phone_number=phone).first()
-    if user:
-        login(request, user)
-    else:
+    
+    if user is None:
         user = User.objects.create_user(phone_number=phone)
-        user.save()
-        login(request, user)
+        
+    if not user.is_active:
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        
+    login(request, user)
     
 
     
@@ -91,13 +93,14 @@ def verify_otp(request):
     
    
 def logout_user(request):
-    logout(request)
+    user = request.user
+    user.is_active = False
+    user.save(update_fields=["is_active"])
     
-    return HttpResponse("شما با موفقیت از حساب کاربری خود خارج شدید") 
+    return 1/0
     
     
-    
-@register_required    
+       
 def user_profile(request):
     profile = Profile.objects.get(user=request.user)
     
@@ -105,7 +108,6 @@ def user_profile(request):
 
 
 
-@register_required
 def edit_profile(request):
     profile = request.user.profile
     
@@ -135,7 +137,6 @@ def edit_profile(request):
         
             
 
-@register_required
 def user_listings(request):
     listings = Listing.objects.filter(seller=request.user)
     
@@ -143,7 +144,6 @@ def user_listings(request):
 
 
 
-@register_required
 def user_boomarks(request):
     bookmarks = Bookmark.objects.filter(user=request.user).select_related("listing")
     

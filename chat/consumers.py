@@ -6,6 +6,8 @@ from django.db.models import Q
 from uuid import uuid4
 from io import BytesIO
 from PIL import Image
+from django.utils import timezone
+from . import presence as p
 import struct
 import json
 
@@ -14,8 +16,10 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024
 ALLOWED_FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp", "GIF": "gif"}
 
 
-def time_format(time):
-    return time.isoformat()[11:16]
+def time_format(dt):
+    if timezone.is_aware(dt):
+        time = timezone.localtime(dt)
+    return time.strftime("%H:%M")
 
 
 def user_is_allowed(user):
@@ -140,6 +144,7 @@ class ConversationConsumer(WebsocketConsumer):
             self.accept()
         else:
             self.close()
+            return
         
         
     def disconnect(self, close_code):
@@ -173,7 +178,7 @@ class ConversationConsumer(WebsocketConsumer):
             "conversation_id": conversation.id,
             "sender_name": sender.username,
             "listing_title": conversation.listing.title,
-            "message": new_message.content or new_message.image.url,
+            "message": new_message.content or "تصویر ",
             "sended_at": time_format(new_message.sended_at)
         }
         
@@ -205,6 +210,7 @@ class NotificationConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(
             self.group_name, self.channel_name
         )
+        
         self.accept()
 
     def disconnect(self, close_code):
@@ -222,11 +228,77 @@ class NotificationConsumer(WebsocketConsumer):
         })) 
         
              
+             
+class PresenceConsumer(WebsocketConsumer):
     
-    
-    
-
-            
-
+    def connect(self):
+        user = self.scope["user"]
+       
+        if not user.is_authenticated:
+            self.close()
+            return
         
+        self.group_name = f"presence_{user.id}"
+        
+        self.user_id = user.id
+        self.connection_id = self.channel_name
+        
+        p.add_connection(self.user_id, self.connection_id)
+        
+        async_to_sync(self.channel_layer.group_add)(self.group_name, self.channel_name)
+        
+        self.accept()
+        
+    def disconnect(self, code):
+        user_id = self.user_id
+        connection_id = self.channel_name
+
+        async_to_sync(self.channel_layer.group_discard)(self.group_name, self.channel_name)
+        
+        p.remove_connection(user_id, connection_id)
+        
+    def receive(self, text_data=None, bytes_data=None):
+        if not text_data:
+            return
+
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            return
+
+        if data.get("request") != "get_status":
+            return
+
+        conversation_id = data.get("conversation_id")
+
+        if not conversation_id:
+            return
+
+        user = self.scope["user"]
+
+        conversation = ListingConversation.objects.filter(
+            id=conversation_id
+        ).filter(
+            Q(seller=user) | Q(customer=user)
+        ).first()
+
+        if not conversation:
+            self.send(text_data=json.dumps({
+                "event": "presence_status",
+                "error": "conversation_not_found",
+            }))
+            return
+
+        if conversation.seller_id == user.id:
+            partner = conversation.customer
+        else:
+            partner = conversation.seller
+
+        self.send(text_data=json.dumps({
+            "event": "presence_status",
+            "user_id": partner.id,
+            "status": "online" if p.is_online(partner.id) else "offline",
+        }))  
+        
+    
     

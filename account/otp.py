@@ -1,3 +1,4 @@
+from .services.sms import send_sms
 import random
 import redis
 
@@ -10,7 +11,7 @@ def get_or_create_otp(phone):
     else:
         otp = random.randint(100000, 999999)    
         r.setex(f"otp:{phone}", 120, otp)
-        print(otp)
+        send_sms(phone, otp)
         
         
 def is_otp_valid(phone, otp):
@@ -26,7 +27,7 @@ def get_otp_ttl(phone):
 def resend_otp(phone):
     new_otp = random.randint(100000, 999999)    
     r.setex(f"otp:{phone}", 120, new_otp)
-    print(new_otp)
+    send_sms(phone, new_otp)
     
     
 def delete_otp(phone):

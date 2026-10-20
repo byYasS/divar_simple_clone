@@ -12,6 +12,10 @@
             <header class="chat-head">
                 <span class="chat-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
                 <h1 id="username" class="chat-title"></h1>
+                <div class="presence-status" id="presence-status">
+                    <span class="presence-dot"></span>
+                    <span id="presence-text">در حال بررسی...</span>
+                </div>
             </header>
 
             <!-- Message log -->
@@ -262,6 +266,104 @@
     };
 
     submitButton.onclick = submitMessage;
+
+
+    const presenceSellerId = "{{ conversation.seller.id }}";
+    const presenceCustomerId = "{{ conversation.customer.id }}";
+    const presenceCurrentUserId = "{{ request.user.id }}";
+
+    const presencePartnerId =
+        String(presenceCurrentUserId) === String(presenceSellerId)
+            ? String(presenceCustomerId)
+            : String(presenceSellerId);
+
+
+    function updatePartnerStatus(status) {
+        const statusContainer =
+            document.getElementById("presence-status");
+
+        const statusText =
+            document.getElementById("presence-text");
+
+        if (!statusContainer || !statusText) {
+            return;
+        }
+
+        statusContainer.classList.remove(
+            "is-online",
+            "is-offline"
+        );
+
+        if (status === "online") {
+            statusContainer.classList.add("is-online");
+            statusText.textContent = "آنلاین";
+        } else if (status === "offline") {
+            statusContainer.classList.add("is-offline");
+            statusText.textContent = "آفلاین";
+        }
+    }
+
+
+    const presenceSocketForChat = window.presenceSocket;
+
+    if (presenceSocketForChat) {
+
+        presenceSocketForChat.addEventListener("message", function(event) {
+            let data;
+
+            try {
+                data = JSON.parse(event.data);
+            } catch (error) {
+                console.error("Invalid presence message:", error);
+                return;
+            }
+
+            if (data.event === "presence_status") {
+                if (data.error) {
+                    console.error(
+                        "Could not get partner status:",
+                        data.error
+                    );
+                    return;
+                }
+
+                if (String(data.user_id) === presencePartnerId) {
+                    updatePartnerStatus(data.status);
+                }
+            }
+        });
+
+
+        function requestPartnerStatus() {
+            if (
+                presenceSocketForChat.readyState !== WebSocket.OPEN
+            ) {
+                return;
+            }
+
+            presenceSocketForChat.send(JSON.stringify({
+                request: "get_status",
+                conversation_id: window.currentConversationId
+            }));
+        }
+
+
+        if (presenceSocketForChat.readyState === WebSocket.OPEN) {
+            requestPartnerStatus();
+        } else if (
+            presenceSocketForChat.readyState === WebSocket.CONNECTING
+        ) {
+            presenceSocketForChat.addEventListener(
+                "open",
+                requestPartnerStatus,
+                { once: true }
+            );
+        }
+
+    } else {
+        console.error("Presence WebSocket is not available.");
+    }
+
 
 </script>
 

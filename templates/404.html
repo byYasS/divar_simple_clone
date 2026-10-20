@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'assets/css/error-pages.css' %}">
+
+<section class="error-page" dir="rtl" lang="fa">
+    <div class="container">
+        <div class="error-card">
+
+            <!-- 4 [magnifier] 4 -->
+            <div class="error-code" aria-hidden="true">
+                <span>۴</span>
+                <span class="error-code-zero"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <span>۴</span>
+            </div>
+
+            <h1 class="error-title">صفحه‌ای که دنبالش بودید پیدا نشد</h1>
+
+            <p class="error-text">
+                ممکن است آدرس را اشتباه وارد کرده باشید، یا آگهی یا صفحه‌ی مورد نظر
+                حذف یا منتقل شده باشد.
+            </p>
+
+            {% if request_path %}
+            <p class="error-path" dir="ltr">{{ request_path }}</p>
+            {% endif %}
+
+            <div class="error-actions">
+                <div class="button">
+                    <a href="{% url 'listing:list_page' %}" class="btn">بازگشت به صفحه اصلی</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+{% endblock content %}

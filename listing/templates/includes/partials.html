@@ -14,18 +14,10 @@
                                 {% endif %}
 
                             </a>
-                            <div class="author">
-                                <div class="author-image">
-                                    <a href="javascript:void(0)">
-                                        <img src="{{ listing.seller.profile.avatar.url }}" alt="#">
-                                        <span>{{ listing.seller.username }}</span>
-                                    </a>
-                                </div>
-                            </div>
                         </div>
                         <div class="content">
                             <div class="top-content">
-                                <a href="javascript:void(0)" class="tag">
+                                <a href="{% url 'listing:category' listing.category.id %}" class="tag">
                                     {{ listing.category }}
                                 </a>
                                 <h3 class="title">
@@ -34,20 +26,21 @@
                                     </a>
                                 </h3>
                                 <p class="update-time">
-                                    آخرین به روز رسانی : {{ listing.updated_at }}
+                                    آخرین به روز رسانی : 
+                                    <time class="js-jalali" datetime="{{ listing.updated_at|date:'c' }}" data-format="long">
+                                        {{ listing.updated_at|date:"Y/m/d" }}
+                                    </time>
                                 </p>
                                 <ul class="info-list">
                                     <li>
-                                        <a href="javascript:void(0)">
-                                            <i class="lni lni-map-marker"></i>
-                                            {{ listing.city }}
-                                        </a>
+                                        <i class="lni lni-map-marker"></i>
+                                        {{ listing.city }}
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)">
-                                            <i class="lni lni-timer"></i>
-                                            {{ listing.created_at }}
-                                        </a>
+                                        <i class="lni lni-timer"></i>
+                                        <time class="js-jalali" datetime="{{ listing.created_at|date:'c' }}" data-format="long">
+                                            {{ listing.created_at|date:"Y/m/d" }}
+                                        </time>
                                     </li>
                                 </ul>
                             </div>

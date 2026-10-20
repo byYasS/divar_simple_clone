@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>خطای سرور</title>
+    <style>
+        :root {
+            --c-brand: #5830e0;
+            --c-navy: #081828;
+            --c-ink: #1b2a3b;
+            --c-muted: #667589;
+            --c-surface: #f4f6fb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--c-surface);
+            font-family: "Vazirmatn", "Vazir", "IRANSans", Tahoma, sans-serif;
+            color: var(--c-ink);
+        }
+
+        .error-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 16px;
+        }
+
+        .error-card {
+            width: 100%;
+            max-width: 560px;
+            padding: 48px 32px 44px;
+            text-align: center;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px -24px rgba(8, 24, 40, .25);
+        }
+
+        /* ---------- big 5 [!] 0 ---------- */
+        .error-code {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .08em;
+            direction: ltr;
+            font-size: clamp(76px, 20vw, 128px);
+            font-weight: 800;
+            line-height: 1;
+            color: var(--c-brand);
+        }
+
+        .error-code-zero {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: .86em;
+            height: .86em;
+            border: .12em solid var(--c-brand);
+            border-radius: 50%;
+        }
+
+        .error-code-zero span {
+            font-size: .42em;
+            font-weight: 800;
+            color: var(--c-navy);
+            animation: error-pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes error-pulse {
+            0%, 100% { transform: scale(1);    opacity: 1; }
+            50%      { transform: scale(1.18); opacity: .65; }
+        }
+
+        /* ---------- text ---------- */
+        .error-title {
+            margin: 28px 0 12px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.7;
+            color: var(--c-navy);
+        }
+
+        .error-text {
+            margin: 0 auto;
+            max-width: 440px;
+            font-size: 15px;
+            line-height: 2;
+            color: var(--c-muted);
+        }
+
+        /* ---------- buttons (same look as the theme's .button .btn) ---------- */
+        .error-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--c-brand);
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color .5s, box-shadow .5s;
+        }
+
+        .btn:hover,
+        .btn:focus-visible {
+            background-color: var(--c-navy);
+            color: #fff;
+            box-shadow: 0 1rem 3rem rgba(35, 38, 45, .15);
+        }
+
+        .btn-alt {
+            background-color: var(--c-navy);
+        }
+
+        .btn-alt:hover,
+        .btn-alt:focus-visible {
+            background-color: var(--c-brand);
+        }
+
+        @media (max-width: 575.98px) {
+            .error-card { padding: 36px 20px 32px; border-radius: 14px; }
+            .error-title { font-size: 20px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .error-code-zero span { animation: none; }
+            .btn { transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <main class="error-page">
+        <div class="error-card">
+
+            <div class="error-code" aria-hidden="true">
+                <span>۵</span>
+                <span class="error-code-zero"><span>!</span></span>
+                <span>۰</span>
+            </div>
+
+            <h1 class="error-title">مشکلی در سرور پیش آمده است</h1>
+
+            <p class="error-text">
+                متأسفانه در پردازش درخواست شما خطایی رخ داد. این مشکل از طرف شما نیست
+                و اطلاع آن ثبت شده است. لطفاً چند لحظه دیگر دوباره تلاش کنید.
+            </p>
+
+            <div class="error-actions">
+                <a href="{% url 'listing:list_page' %}" class="btn">بازگشت به صفحه اصلی</a>
+                <button type="button" class="btn btn-alt" id="error-retry">تلاش دوباره</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('error-retry').addEventListener('click', function () {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

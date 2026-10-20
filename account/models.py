@@ -38,12 +38,10 @@ def generate_username():
     return f"کاربر_{uuid.uuid4().hex[:6]}" 
      
 class User(AbstractUser):
-    phone_number = models.CharField(max_length=11, unique=True)
-    username = models.CharField(max_length=50, default=generate_username, unique=True)
-    verified = models.BooleanField(default=False)
-    
+    phone_number = models.CharField(verbose_name="شماره موبایل", max_length=11, unique=True)
+    username = models.CharField(verbose_name="نام کاربری", max_length=50, default=generate_username, unique=True)
+
     USERNAME_FIELD = "phone_number"
-    
     
     
     objects = UserManager()
@@ -55,11 +53,13 @@ def avatar_image_path(instance, filename):
 
     
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    avatar = models.ImageField(upload_to=avatar_image_path, null=True, blank=True)
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, related_name="profiles", null=True, blank=True)
+    user = models.OneToOneField(User, verbose_name="کاربر", on_delete=models.CASCADE, related_name="profile")
+    avatar = models.ImageField(verbose_name="آواتار", upload_to=avatar_image_path, null=True, blank=True)
+    city = models.ForeignKey(City, verbose_name="شهر", on_delete=models.SET_NULL, related_name="profiles", null=True, blank=True)
     
-
+    class Meta:
+        verbose_name = "پروفایل"
+        verbose_name_plural = "پروفایل ها"
     def __str__(self):
         return self.user.username
     

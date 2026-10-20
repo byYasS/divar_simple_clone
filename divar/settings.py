@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-08%*4i6ipr6=aeukt$@j=xwn2ww7yn76_5y4ljw1wcv)%0e9n+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    'account.middleware.LoginRequiredMiddleware'
 ]
 
 ROOT_URLCONF = 'divar.urls'
@@ -121,9 +122,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "fa"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Tehran"
 
 USE_I18N = True
 
@@ -140,3 +141,64 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+ 
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+ 
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+ 
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+        "console_verbose": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "errors_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(LOG_DIR / "errors.log"),
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "encoding": "utf-8",
+            "level": "WARNING",
+            "formatter": "verbose",
+        },
+    },
+    
+    "loggers": {
+        "account.services.sms": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console_verbose", "errors_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console_verbose", "errors_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    
+    "root": {
+        "handlers": ["console_verbose", "errors_file"],
+        "level": "WARNING",
+    },
+}
+ 

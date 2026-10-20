@@ -17,7 +17,7 @@
                     {% if listings %}
                         <p class="listings-count">{{ listings|length }} آگهی ثبت‌شده</p>
                     {% else %}
-                        <p class="listings-count">شما آگهی ثبت شده ندارید</p>
+                        <p class="listings-count">آگهی ثبت شده وجود ندارد</p>
                     {% endif %}
                 </div>
 
@@ -51,10 +51,6 @@
                     <div class="icon" aria-hidden="true"><i class="lni lni-layers"></i></div>
                     <h2>شما آگهی ثبت شده ندارید</h2>
                     <p>اولین آگهی خود را ثبت کنید تا برای خریداران نمایش داده شود.</p>
-                    <a class="listings-add" href="{% url 'listing:create_listing' %}">
-                        <i class="lni lni-plus" aria-hidden="true"></i>
-                        ثبت آگهی جدید
-                    </a>
                 </div>
 
             {% endif %}

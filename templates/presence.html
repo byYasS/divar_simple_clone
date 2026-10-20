@@ -1,0 +1,28 @@
+{% if user.is_authenticated %}
+
+<script>
+    window.presenceSocket = null;
+
+    console.log("BASE HTML SCRIPT LOADED");
+
+    const presenceProtocol =
+        window.location.protocol === "https:" ? "wss:" : "ws:";
+
+    window.presenceSocket = new WebSocket(
+        `${presenceProtocol}//${window.location.host}/ws/presence/`
+    );
+
+    window.presenceSocket.onopen = () => {
+        console.log("Presence WebSocket connected");
+    };
+
+    window.presenceSocket.onerror = (error) => {
+        console.error("Presence WebSocket error:", error);
+    };
+
+    window.presenceSocket.onclose = (event) => {
+        console.log("Presence WebSocket closed:", event.code);
+    };
+</script>
+
+{% endif %}
