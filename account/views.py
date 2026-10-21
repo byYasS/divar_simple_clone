@@ -97,7 +97,9 @@ def logout_user(request):
     user.is_active = False
     user.save(update_fields=["is_active"])
     
-    return 1/0
+    logout(request)
+    
+    return render(request, "logged_out.html")
     
     
        
